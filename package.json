@@ -1,0 +1,36 @@
+{
+  "name": "one4all",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Company Simulation System",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "vitest",
+    "test:smoke": "vitest run --config vitest.config.ts --testNamePattern='health check|Health Check'",
+    "test:parity": "vitest run --config vitest.config.ts --testNamePattern='parity|Parity'",
+    "test:real-llm": "vitest run --config vitest.config.ts --testNamePattern='real'",
+    "test:real:claude": "TEST_CLAUDE_REAL=1 vitest run --config vitest.config.ts --testNamePattern='claude.*real|Claude.*Real'",
+    "test:real:zai": "TEST_ZAI_REAL=1 vitest run --config vitest.config.ts --testNamePattern='zai.*real|ZAI.*Real'",
+    "test:real:gemini": "TEST_GEMINI_REAL=1 vitest run --config vitest.config.ts --testNamePattern='gemini.*real|Gemini.*Real'",
+    "lint": "eslint packages --ext .ts",
+    "format": "prettier --write \"**/*.ts\"",
+    "clean": "rm -rf node_modules packages/*/node_modules",
+    "kernel": "node packages/cli/dist/index.js",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.12.0"
+}

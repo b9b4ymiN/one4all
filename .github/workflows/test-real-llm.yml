@@ -1,0 +1,83 @@
+name: Real-LLM Integration Tests
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  claude-real-llm:
+    name: Claude Real-LLM Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Claude real-LLM tests
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TEST_CLAUDE_REAL: 1
+        run: npm run test:real:claude
+
+  zai-real-llm:
+    name: ZAI Real-LLM Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ZAI real-LLM tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TEST_ZAI_REAL: 1
+        run: npm run test:real:zai
+
+  gemini-real-llm:
+    name: Gemini Real-LLM Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ secrets.GOOGLE_API_KEY != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Gemini real-LLM tests
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          TEST_GEMINI_REAL: 1
+        run: npm run test:real:gemini

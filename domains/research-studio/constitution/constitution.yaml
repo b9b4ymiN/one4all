@@ -1,0 +1,205 @@
+# Constitution: Research Studio
+# Rules for academic research and evidence evaluation
+
+id: research-studio-constitution
+version: "1.0"
+domain: research-studio
+
+# Constitution Rules
+rules:
+  # Evidence Quality Rules
+  - id: peer-review-required
+    name: "Peer-Reviewed Sources Preferred"
+    category: evidence_quality
+    severity: warn_and_flag
+    description: "Claims should be supported by peer-reviewed sources when available. Non-peer-reviewed sources require additional justification."
+    validators:
+      - evidence_source_validator
+    enforcement:
+      action: warn_only
+
+  - id: citation-format-required
+    name: "Proper Citation Format"
+    category: evidence_quality
+    severity: reject_output
+    description: "All claims must include proper citations with author, year, and DOI/URL when available"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: require_retry
+      max_retries: 2
+
+  - id: sample-size-disclosure
+    name: "Sample Size Disclosure"
+    category: research_methods
+    severity: reject_output
+    description: "All statistical claims must disclose sample size and statistical significance levels"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  # Argumentation Rules
+  - id: claim-warrant-impact
+    name: "Structured Argumentation Required"
+    category: argumentation_quality
+    severity: reject_output
+    description: "Arguments must follow claim-warrant-impact format: explicit claim, supporting warrant/reasoning, and impact assessment"
+    validators:
+      - argumentation_validator
+    enforcement:
+      action: require_retry
+      max_retries: 2
+
+  - id: alternative-interpretations
+    name: "Consider Alternative Interpretations"
+    category: argumentation_quality
+    severity: warn_and_flag
+    description: "Analysts must explicitly consider and address alternative interpretations of the evidence"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: warn_only
+
+  # Bayesian Updating Rules
+  - id: prior-belief-disclosure
+    name: "Disclose Prior Beliefs"
+    category: belief_updating
+    severity: warn_and_flag
+    description: "Analysts must disclose their prior beliefs about hypotheses before examining new evidence"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: warn_only
+
+  - id: bayesian-update-required
+    name: "Update Beliefs Based on Evidence"
+    category: belief_updating
+    severity: reject_output
+    description: "Analysts must demonstrate how their beliefs updated based on evidence strength and likelihood"
+    validators:
+      - belief_update_validator
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  # Methodology Rules
+  - id: methodology-transparency
+    name: "Methodology Transparency"
+    category: research_methods
+    severity: reject_output
+    description: "All methodological choices must be explicitly justified with reference to established practices"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  - id: limitations-disclosure
+    name: "Disclose Methodological Limitations"
+    category: research_methods
+    severity: reject_output
+    description: "All analyses must explicitly disclose methodological limitations and their potential impact"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  # Cross-Domain Rules
+  - id: cross-domain-citation
+    name: "Cross-Domain Evidence Allowed"
+    category: cross_domain
+    severity: warn_and_flag
+    description: "Evidence from other domains (e.g., investment data for research questions) may be cited but must be clearly labeled"
+    validators:
+      - cross_domain_validator
+    enforcement:
+      action: warn_only
+
+  # Behavioral Rules
+  - id: intellectual-humility
+    name: "Maintain Intellectual Humility"
+    category: behavioral_constraint
+    severity: warn_and_flag
+    description: "Analysts must acknowledge uncertainty and avoid overconfident claims"
+    validators:
+      - debate_conduct_validator
+    enforcement:
+      action: warn_only
+
+  - id: constructive-criticism
+    name: "Constructive Criticism Only"
+    category: behavioral_constraint
+    severity: reject_output
+    description: "Critique must be specific, actionable, and focused on methodology and evidence rather than individuals"
+    validators:
+      - debate_conduct_validator
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  # Reproducibility Rules
+  - id: reproducibility-info
+    name: "Provide Reproducibility Information"
+    category: research_methods
+    severity: warn_and_flag
+    description: "When available, provide links to code, data, and supplementary materials"
+    validators:
+      - required_fields_validator
+    enforcement:
+      action: warn_only
+
+# Validator Configuration
+validators:
+  evidence_source_validator:
+    priority: 1
+    config:
+      tier_threshold: 1
+      prefer_tier_1: true
+
+  required_fields_validator:
+    priority: 2
+    config:
+      strict_mode: false
+
+  argumentation_validator:
+    priority: 3
+    config:
+      require_claim: true
+      require_warrant: true
+      require_impact: true
+
+  belief_update_validator:
+    priority: 4
+    config:
+      require_prior_belief: true
+      require_posterior_belief: true
+      require_likelihood_assessment: true
+
+  debate_conduct_validator:
+    priority: 5
+    config:
+      allow_constructive_criticism: true
+      detect_personal_attacks: true
+      detect_overconfidence: true
+
+  cross_domain_validator:
+    priority: 6
+    config:
+      allowed_domains:
+        - investment-war-room
+        - research-studio
+      require_labeling: true
+
+# Enforcement Levels
+enforcement_levels:
+  reject_output:
+    action: require_retry
+    max_retries: 2
+    on_max_retries_exceeded: block_and_flag
+
+  warn_and_flag:
+    action: warn_only
+    include_in_summary: true

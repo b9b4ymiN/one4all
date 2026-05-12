@@ -1,0 +1,90 @@
+# Domain Configuration: Research Studio
+# Academic and research-focused multi-agent analysis system
+
+id: research-studio
+name: "Research Studio"
+version: "1.0"
+description: "Multi-agent research analysis system with structured argumentation, literature review, and hypothesis testing"
+
+# Domain State Machine (inherited from kernel)
+state_machine:
+  initial_state: FORMING
+  states:
+    - FORMING
+    - RESEARCHING
+    - DEBATING
+    - DECIDING
+    - EXECUTING
+    - REVIEWING
+
+# Default Agents for this Domain
+default_participants:
+  - literature-reviewer
+  - methodologist
+  - statistician
+  - peer-reviewer
+  - synthesizer
+  - hypothesis-tester
+
+# Evidence Requirements
+evidence_requirements:
+  source_tiers:
+    tier_1:
+      - "Peer-reviewed journal articles"
+      - "Preprint repositories (arXiv, bioRxiv, SSRN)"
+      - "Conference proceedings from top venues"
+      - "Government research reports"
+    tier_2:
+      - "University research centers"
+      - "Think tank publications"
+      - "Professional association reports"
+      - "Books from academic publishers"
+    tier_3:
+      - "Mainstream science journalism"
+      - "Industry white papers"
+      - "PhD dissertations"
+      - "Course materials from accredited institutions"
+    tier_4:
+      - "Blog posts by researchers"
+      - "Conference presentations (slides)"
+      - "Podcasts and videos"
+      - "Social media discussions"
+
+# Debate Configuration
+debate_config:
+  max_rounds: 4
+  max_contributions_per_round: 6
+  convergence_threshold: 25
+  timeout_ms: 420000
+  constitution_strict: true
+
+# Enhanced Debate Features
+enhanced_debate:
+  argumentation_format: "claim-warrant-impact"
+  enable_belief_updating: true
+  enable_argument_mapping: true
+  cross_domain_citation: true
+
+# Synthesis Configuration
+synthesis_config:
+  consensus_threshold: 0.7
+  conviction_mapping:
+    very_low: 0-15
+    low: 15-35
+    moderate: 35-55
+    high: 55-80
+    very_high: 80-100
+
+# Report Configuration
+report_config:
+  default_format: markdown
+  include_sections:
+    - abstract
+    - introduction
+    - literature_review
+    - methodology
+    - findings
+    - discussion
+    - limitations
+    - conclusion
+    - references

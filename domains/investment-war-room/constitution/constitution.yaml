@@ -1,0 +1,194 @@
+# Constitution: Investment War Room
+# Rules that all analysts must follow during investment analysis
+
+id: investment-war-room-constitution
+version: "1.0"
+domain: investment-war-room
+
+# Constitution Rules
+rules:
+  # Evidence Quality Rules
+  - id: evidence-tier-1-required
+    name: "Tier 1 Sources Required for Key Claims"
+    category: evidence_quality
+    severity: reject_output
+    description: "All material claims about business model, financials, or competitive position must cite Tier 1 sources (SEC filings, earnings transcripts, company materials)"
+    validators:
+      - evidence_source_validator
+    enforcement:
+      action: require_retry
+      max_retries: 2
+      retry_message: "Please provide Tier 1 source citations for your claims"
+
+  - id: no-unverified-sources
+    name: "No Tier 4 Sources for Investment Thesis"
+    category: evidence_quality
+    severity: warn_and_flag
+    description: "Tier 4 sources (social media, forums, blogs) should never form the basis of investment thesis"
+    validators:
+      - evidence_source_validator
+    enforcement:
+      action: warn_only
+
+  - id: evidence-recency
+    name: "Evidence Must Be Current"
+    category: evidence_quality
+    severity: warn_and_flag
+    description: "Financial data should be from the most recent reporting period. Industry trends should be from the last 12 months"
+    validators:
+      - evidence_recency_validator
+    enforcement:
+      action: warn_only
+      threshold_days: 365
+
+  # Conviction and Humility Rules
+  - id: conviction-must-justify
+    name: "Conviction Level Must Be Justified"
+    category: conviction_threshold
+    severity: reject_output
+    description: "Analysts must explain why their conviction level is what it is, referencing evidence quality, data completeness, and uncertainty factors"
+    validators:
+      - conviction_validator
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  - id: declare-uncertainty
+    name: "Declare Uncertainties Explicitly"
+    category: conviction_threshold
+    severity: warn_and_flag
+    description: "Analysts must explicitly state what they don't know and what data they're missing"
+    validators:
+      - required_fields_validator
+    required_fields:
+      - data_gaps_found
+      - what_would_change_my_mind
+    enforcement:
+      action: warn_only
+
+  # Valuation Rules
+  - id: dcf-requires-narrative
+    name: "DCF Requires Clear Narrative"
+    category: valuation_discipline
+    severity: reject_output
+    description: "DCF valuation must be accompanied by a clear business narrative that justifies the growth, margin, and terminal value assumptions"
+    validators:
+      - valuation_validator
+    enforcement:
+      action: require_retry
+      max_retries: 2
+
+  - id: sensitivity-required
+    name: "Sensitivity Analysis Required"
+    category: valuation_discipline
+    severity: warn_and_flag
+    description: "Valuation must include sensitivity analysis showing how value changes with key assumptions"
+    validators:
+      - required_fields_validator
+    required_fields:
+      - key_assumptions
+    enforcement:
+      action: warn_only
+
+  # Behavioral Rules
+  - id: no-buy-sell-recommendations
+    name: "No Buy/Sell Recommendations"
+    category: behavioral_constraint
+    severity: reject_output
+    description: "Analysts provide valuation and analysis only. Portfolio managers make buy/sell decisions"
+    validators:
+      - forbidden_content_validator
+    forbidden_patterns:
+      - "\\bbuy\\b.*\\bstock\\b"
+      - "\\bsell\\b.*\\bstock\\b"
+      - "\\brecommend\\b.*\\bpurchase\\b"
+    enforcement:
+      action: block_immediately
+
+  - id: respect-opposing-views
+    name: "Respect Opposing Analyst Views"
+    category: behavioral_constraint
+    severity: warn_and_flag
+    description: "When challenging another analyst, reference their specific claims and provide counter-evidence. No personal attacks"
+    validators:
+      - debate_conduct_validator
+    enforcement:
+      action: warn_only
+
+  # Margin of Safety Rules
+  - id: mos-required
+    name: "Margin of Safety Analysis Required"
+    category: risk_management
+    severity: reject_output
+    description: "Analysis must include margin of safety calculation comparing fair value to market price"
+    validators:
+      - required_fields_validator
+    required_fields:
+      - margin_of_safety
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+  - id: downside-case-required
+    name: "Bear Case Must Be Explicit"
+    category: risk_management
+    severity: reject_output
+    description: "Analysis must include explicit discussion of what could go wrong and how much value could be lost"
+    validators:
+      - required_fields_validator
+    required_fields:
+      - downside_case
+    enforcement:
+      action: require_retry
+      max_retries: 1
+
+# Validator Configuration
+validators:
+  evidence_source_validator:
+    priority: 1
+    config:
+      tier_threshold: 1
+      require_citations: true
+
+  conviction_validator:
+    priority: 2
+    config:
+      require_justification: true
+      min_evidence_for_high_conviction: 3
+
+  required_fields_validator:
+    priority: 3
+    config:
+      strict_mode: false
+
+  forbidden_content_validator:
+    priority: 4
+    config:
+      case_sensitive: false
+
+  valuation_validator:
+    priority: 5
+    config:
+      require_narrative linkage: true
+      require_terminal_value_explanation: true
+
+  debate_conduct_validator:
+    priority: 6
+    config:
+      allow_constructive_criticism: true
+      detect_personal_attacks: true
+
+# Enforcement Levels
+enforcement_levels:
+  reject_output:
+    action: require_retry
+    max_retries: 2
+    on_max_retries_exceeded: block_and_flag
+
+  warn_and_flag:
+    action: warn_only
+    include_in_summary: true
+
+  block_immediately:
+    action: block_immediately
+    notify_admin: true

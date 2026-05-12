@@ -1,0 +1,82 @@
+# Domain Configuration: Investment War Room
+# Multi-agent investment analysis system with constitution enforcement
+
+id: investment-war-room
+name: "Investment War Room"
+version: "1.0"
+description: "Multi-agent investment analysis system with structured debate, evidence requirements, and conviction tracking"
+
+# Domain State Machine
+state_machine:
+  initial_state: FORMING
+  states:
+    - FORMING
+    - RESEARCHING
+    - DEBATING
+    - DECIDING
+    - EXECUTING
+    - REVIEWING
+
+# Default Agents for this Domain
+default_participants:
+  - damodaran-valuation
+  - downside-protection
+  - leveraged-franchise
+  - allocator-steward
+  - portfolio-manager
+  - consensus-analyst
+
+# Evidence Requirements
+evidence_requirements:
+  source_tiers:
+    tier_1:
+      - "SEC filings (10-K, 10-Q, 8-K)"
+      - "Earnings call transcripts"
+      - "Company investor presentations"
+      - "Audited financial statements"
+    tier_2:
+      - "Industry reports from established firms"
+      - "Regulatory filings"
+      - "Competitor filings"
+      - "Press releases from primary sources"
+    tier_3:
+      - "Financial news (WSJ, Bloomberg, FT)"
+      - "Analyst reports from major firms"
+      - "Conference presentations"
+    tier_4:
+      - "Social media and forums"
+      - "Blog posts"
+      - "Unverified sources"
+
+# Debate Configuration
+debate_config:
+  max_rounds: 3
+  max_contributions_per_round: 5
+  convergence_threshold: 30
+  timeout_ms: 300000
+  constitution_strict: true
+
+# Synthesis Configuration
+synthesis_config:
+  consensus_threshold: 0.6
+  conviction_mapping:
+    very_low: 0-20
+    low: 20-40
+    moderate: 40-60
+    high: 60-80
+    very_high: 80-100
+
+# Report Configuration
+report_config:
+  default_format: markdown
+  include_sections:
+    - executive_summary
+    - business_model
+    - evidence_quality
+    - valuation_analysis
+    - margin_of_safety
+    - downside_case
+    - analyst_disagreements
+    - thesis_breakers
+    - final_decision
+    - follow_up_checklist

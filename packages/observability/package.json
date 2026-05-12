@@ -1,0 +1,23 @@
+{
+  "name": "@one4all/observability",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@one4all/shared": "workspace:*",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/winston": "^2.4.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -1,0 +1,402 @@
+# Company Constitution: Investment War Room
+# Sample constitution file for testing
+
+domain: investment-war-room
+version: "1.0"
+description: "Company Constitution for Investment War Room domain"
+
+rules:
+  # Evidence Rules
+  - id: no_analysis_without_evidence
+    name: "No Analysis Without Evidence"
+    description: "Every analysis must be based on verified evidence"
+    enforcement: BLOCK_MISSION
+    applies_to: all_agents
+    exception: none
+    validation:
+      criteria:
+        - "Every FACT must have source_tier specified"
+        - "Every DERIVED must cite source FACTs"
+        - "No sourceless claims allowed"
+      forbidden_content: []
+      required_fields: []
+      thresholds: {}
+
+  - id: normalized_earnings_required
+    name: "Normalized Earnings Required"
+    description: "No valuation without normalized earnings verification"
+    enforcement: BLOCK_MISSION
+    applies_to:
+      - damodaran-valuation
+      - klarman-downside
+      - portfolio-allocator
+    exception: none
+    validation:
+      criteria:
+        - "forensic-accountant must complete first"
+        - "normalized_earnings must be calculated"
+        - "quality_rating must be provided"
+      forbidden_content: []
+      required_fields:
+        - normalized_earnings
+        - quality_rating
+      thresholds: {}
+
+  - id: data_gaps_must_surface
+    name: "Data Gaps Must Surface"
+    description: "Critical data gaps must be disclosed to owner"
+    enforcement: INSERT_HUMAN_REVIEW
+    applies_to: researcher-set
+    exception: none
+    validation:
+      criteria:
+        - "All data gaps must be reported"
+      critical_fields:
+        - normalized_earnings
+        - revenue
+        - major_shareholders
+        - debt_structure
+        - capex
+      thresholds: {}
+
+  - id: evidence_score_threshold
+    name: "Evidence Score Threshold"
+    description: "Low evidence score requires human review"
+    enforcement: INSERT_HUMAN_REVIEW
+    applies_to: evidence_controller
+    exception: none
+    validation:
+      criteria:
+        - "Evidence score must meet threshold"
+      thresholds:
+        very_low: 20
+        low: 40
+        conditional: 70
+
+  # Output Rules
+  - id: no_buy_sell_recommendation
+    name: "No Buy/Sell Recommendations"
+    description: "System outputs decision states, not recommendations"
+    enforcement: REJECT_OUTPUT
+    applies_to: all_agents
+    exception: none
+    validation:
+      criteria:
+        - "Must use decision states instead of recommendations"
+      forbidden_content:
+        - "buy"
+        - "sell"
+        - "strong buy"
+        - "strong sell"
+        - "accumulate"
+        - "dispose"
+      required_fields: []
+      thresholds: {}
+
+  - id: conviction_level_required
+    name: "Conviction Level Required"
+    description: "Every analysis must state conviction level 1-10"
+    enforcement: REJECT_OUTPUT
+    applies_to: all_analyst_agents
+    exception: none
+    validation:
+      criteria:
+        - "conviction_level must be 1-10"
+        - "conviction_reasoning must be provided"
+      forbidden_content: []
+      required_fields:
+        - conviction_level
+      thresholds:
+        low: 4
+        high: 7
+
+  - id: what_would_change_my_mind_required
+    name: "What Would Change My Mind Required"
+    description: "Every analyst must state what would invalidate their thesis"
+    enforcement: REJECT_OUTPUT
+    applies_to: all_analyst_agents
+    exception: none
+    validation:
+      criteria:
+        - "what_would_change_my_mind must not be empty"
+        - "At least 3 specific items required"
+      forbidden_content: []
+      required_fields:
+        - what_would_change_my_mind
+      thresholds:
+        min_items: 3
+
+  # Valuation Rules
+  - id: terminal_growth_cap
+    name: "Terminal Growth Cap"
+    description: "Terminal growth cannot exceed risk-free rate"
+    enforcement: REJECT_OUTPUT
+    applies_to: damodaran-valuation
+    exception: owner_explicit_override
+    validation:
+      criteria:
+        - "terminal_growth <= risk_free_rate"
+        - "If risk_free_rate not found, use 3% as cap"
+      forbidden_content: []
+      required_fields:
+        - terminal_growth
+      thresholds:
+        max_terminal_growth: 3
+
+  - id: wacc_reasonableness
+    name: "WACC Reasonableness"
+    description: "WACC must be within reasonable bounds"
+    enforcement: WARN_AND_FLAG
+    applies_to: damodaran-valuation
+    exception: none
+    validation:
+      criteria:
+        - "WACC between 5% and 15% typically"
+        - "Flag if WACC > 15% or < 5%"
+      forbidden_content: []
+      required_fields:
+        - wacc
+      thresholds:
+        min_wacc: 5
+        max_wacc: 15
+
+  - id: growth_with_reinvestment
+    name: "Growth With Reinvestment"
+    description: "Growth assumptions must have reinvestment support"
+    enforcement: REJECT_OUTPUT
+    applies_to: damodaran-valuation
+    exception: none
+    validation:
+      criteria:
+        - "If growth > 5%, must show reinvestment rate"
+        - "If margin expanding, must justify with efficiency gains"
+      forbidden_content: []
+      required_fields:
+        - revenue_growth_y1_y5
+        - reinvestment_rate
+      thresholds:
+        high_growth_threshold: 5
+
+  # Risk Rules
+  - id: downside_scenario_required
+    name: "Downside Scenario Required"
+    description: "Every analysis must include downside scenario"
+    enforcement: REJECT_OUTPUT
+    applies_to:
+      - damodaran-valuation
+      - klarman-downside
+    exception: none
+    validation:
+      criteria:
+        - "At least 2 scenarios: base and stress"
+        - "Distress scenario preferred"
+      forbidden_content: []
+      required_fields:
+        - downside_scenarios
+      thresholds:
+        min_scenarios: 2
+
+  - id: thesis_breakers_required
+    name: "Thesis Breakers Required"
+    description: "Every decision must include thesis breakers"
+    enforcement: REJECT_OUTPUT
+    applies_to: cio-synthesizer
+    exception: none
+    validation:
+      criteria:
+        - "thesis_breakers must not be empty"
+        - "At least 3 specific breakers required"
+        - "Each breaker must be observable/measurable"
+      forbidden_content: []
+      required_fields:
+        - thesis_breakers
+      thresholds:
+        min_breakers: 3
+
+  # Position Sizing Rules
+  - id: position_size_limits
+    name: "Position Size Limits"
+    description: "Position sizing must respect risk limits"
+    enforcement: REJECT_OUTPUT
+    applies_to: portfolio-allocator
+    exception: none
+    validation:
+      criteria:
+        - "starter_position ≤ 5% of portfolio"
+        - "full_position ≤ 15% of portfolio"
+        - "If conviction < 5, max position = 3%"
+      forbidden_content: []
+      required_fields:
+        - starter_position
+        - full_position
+        - conviction_level
+      thresholds:
+        max_starter_position: 5
+        max_full_position: 15
+        max_low_conviction_position: 3
+
+  # Disclosure Rules
+  - id: assumptions_must_be_labeled
+    name: "Assumptions Must Be Labeled"
+    description: "All assumptions must be explicitly labeled"
+    enforcement: WARN_AND_FLAG
+    applies_to: all_agents
+    exception: none
+    validation:
+      criteria:
+        - "Every assumption has label: ASSUMPTION"
+        - "Sensitive assumptions flagged"
+      sensitive_assumptions:
+        - revenue_growth
+        - margin_expansion
+        - terminal_growth
+        - wacc
+      thresholds: {}
+
+  - id: source_tier_disclosure
+    name: "Source Tier Disclosure"
+    description: "Every source must have tier declared"
+    enforcement: REJECT_OUTPUT
+    applies_to: all_agents
+    exception: none
+    validation:
+      criteria:
+        - "Every FACT has source_tier"
+        - "If tier unknown, label as UNVERIFIED"
+      forbidden_content: []
+      required_fields: []
+      thresholds: {}
+
+  # Agent-Specific Rules
+  - id: researcher_must_cite_sources
+    name: "Researcher Must Cite Sources"
+    description: "Every fact must have source citation"
+    enforcement: REJECT_OUTPUT
+    applies_to: researcher-set
+    exception: none
+    validation:
+      criteria:
+        - "Every FACT must have source"
+      forbidden_content: []
+      required_fields:
+        - source_log
+      thresholds: {}
+
+  - id: researcher_must_label_tier
+    name: "Researcher Must Label Tier"
+    description: "Every source must have tier classification"
+    enforcement: REJECT_OUTPUT
+    applies_to: researcher-set
+    exception: none
+    validation:
+      criteria:
+        - "Every source must have tier"
+      forbidden_content: []
+      required_fields: []
+      thresholds: {}
+
+  - id: forensic_ocf_check
+    name: "Forensic OCF Check"
+    description: "Must compare operating cash flow to net income"
+    enforcement: REJECT_OUTPUT
+    applies_to: forensic-accountant
+    exception: none
+    validation:
+      criteria:
+        - "Must calculate OCF to NI ratio"
+        - "Must provide quality rating"
+      forbidden_content: []
+      required_fields:
+        - ocf_to_ni_ratio
+        - quality_rating
+      thresholds: {}
+
+  - id: forensic_quality_rating
+    name: "Forensic Quality Rating"
+    description: "Must provide earnings quality rating"
+    enforcement: REJECT_OUTPUT
+    applies_to: forensic-accountant
+    exception: none
+    validation:
+      criteria:
+        - "Must provide quality rating"
+      forbidden_content: []
+      required_fields:
+        - quality_rating
+      thresholds: {}
+
+  - id: valuation_multiple_scenarios
+    name: "Valuation Multiple Scenarios"
+    description: "Must provide at least 3 valuation scenarios"
+    enforcement: REJECT_OUTPUT
+    applies_to: damodaran-valuation
+    exception: none
+    validation:
+      criteria:
+        - "Must provide conservative, base, and optimistic scenarios"
+      forbidden_content: []
+      required_fields:
+        - fair_value_conservative
+        - fair_value_base
+        - fair_value_optimistic
+      thresholds:
+        min_scenarios: 3
+
+  - id: valuation_reverse_dcf
+    name: "Valuation Reverse DCF"
+    description: "Must provide reverse DCF showing market expectations"
+    enforcement: REJECT_OUTPUT
+    applies_to: damodaran-valuation
+    exception: none
+    validation:
+      criteria:
+        - "Must calculate implied growth at market price"
+      forbidden_content: []
+      required_fields:
+        - implied_growth_at_current_price
+      thresholds: {}
+
+  - id: cio_must_preserve_disagreements
+    name: "CIO Must Preserve Disagreements"
+    description: "Must not artificially resolve agent disagreements"
+    enforcement: REJECT_OUTPUT
+    applies_to: cio-synthesizer
+    exception: none
+    validation:
+      criteria:
+        - "Must preserve unresolved disagreements"
+      forbidden_content:
+        - "we agree on everything"
+        - "full consensus"
+      required_fields:
+        - disagreement_points
+      thresholds: {}
+
+  - id: cio_decision_state_required
+    name: "CIO Decision State Required"
+    description: "Must output valid decision state enum"
+    enforcement: REJECT_OUTPUT
+    applies_to: cio-synthesizer
+    exception: none
+    validation:
+      criteria:
+        - "Must output valid decision_state"
+      forbidden_content: []
+      required_fields:
+        - decision_state
+      thresholds: {}
+
+  - id: cio_thesis_breakers_required
+    name: "CIO Thesis Breakers Required"
+    description: "Must include thesis breakers in final output"
+    enforcement: REJECT_OUTPUT
+    applies_to: cio-synthesizer
+    exception: none
+    validation:
+      criteria:
+        - "thesis_breakers must not be empty"
+      forbidden_content: []
+      required_fields:
+        - thesis_breakers
+      thresholds:
+        min_breakers: 3

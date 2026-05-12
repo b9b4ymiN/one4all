@@ -1,0 +1,28 @@
+{
+  "name": "@one4all/kernel",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@one4all/shared": "workspace:*",
+    "@one4all/adapters": "workspace:*",
+    "@one4all/observability": "workspace:*",
+    "zod": "^3.22.0",
+    "neverthrow": "^6.0.0",
+    "drizzle-orm": "^0.29.0",
+    "better-sqlite3": "^11.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/js-yaml": "^4.0.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
