@@ -71,14 +71,31 @@ export class CodexCLIAdapter {
   private async executeCodexCLI(prompt: string): Promise<string> {
     return new Promise((resolve, reject) => {
       // Codex CLI requires --skip-git-repo-check when not in a git directory
-      const args = ['exec', prompt, '--output-format', 'json', '--skip-git-repo-check'];
-      const process = spawn(this.config.codexPath, args);
+      // Use --json for structured output and --ephemeral for non-persistent session
+      // Use --dangerously-bypass-approvals-and-sandbox for non-interactive execution
+      const args = [
+        'exec',
+        prompt,
+        '--skip-git-repo-check',
+        '--json',
+        '--ephemeral',
+        '--dangerously-bypass-approvals-and-sandbox'
+      ];
+      // Close stdin to prevent process from waiting for input
+      const process = spawn(this.config.codexPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
-      let stdout = '';
+      const jsonlLines: string[] = [];
       let stderr = '';
 
       process.stdout.on('data', (data) => {
-        stdout += data.toString();
+        const chunk = data.toString();
+        // Collect all JSONL lines
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.trim()) {
+            jsonlLines.push(line.trim());
+          }
+        }
       });
 
       process.stderr.on('data', (data) => {
@@ -93,35 +110,54 @@ export class CodexCLIAdapter {
       process.on('close', (code) => {
         clearTimeout(timeout);
 
-        if (code !== 0) {
+        if (code !== 0 && code !== 130) {  // 130 is Ctrl+C, which we might use
           reject(new Error(`Codex CLI exited with code ${code}: ${stderr}`));
           return;
         }
 
-        try {
-          // Parse JSON output
-          const jsonMatch = stdout.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            // Codex might return text output without JSON
-            resolve(stdout.trim());
-            return;
+        // Parse JSONL output to find the final response
+        // Codex JSONL format: {"type":"item.completed","item":{"type":"agent_message","text":"..."}}
+        for (const line of jsonlLines) {
+          try {
+            const event = JSON.parse(line);
+            // Look for item.completed with agent_message containing text
+            if (event.type === 'item.completed' && event.item?.type === 'agent_message' && event.item?.text) {
+              resolve(event.item.text);
+              return;
+            }
+            // Also check for other content formats
+            if (event.item?.text) {
+              resolve(event.item.text);
+              return;
+            }
+            if (event.content) {
+              resolve(event.content);
+              return;
+            }
+          } catch {
+            // Not a JSON line, skip
           }
+        }
 
-          const result = JSON.parse(jsonMatch[0]);
+        // Fallback: extract all text content from JSONL events
+        const contents: string[] = [];
+        for (const line of jsonlLines) {
+          try {
+            const event = JSON.parse(line);
+            if (event.item?.text && typeof event.item.text === 'string') {
+              contents.push(event.item.text);
+            } else if (event.content && typeof event.content === 'string') {
+              contents.push(event.content);
+            }
+          } catch {}
+        }
 
-          // Codex CLI JSON format - need to verify actual structure
-          // Assuming similar format to other CLIs
-          if (result.response || result.result || result.content || result.message) {
-            resolve(result.response || result.result || result.content || result.message);
-          } else if (typeof result === 'string') {
-            resolve(result);
-          } else {
-            // Fallback to raw output if structure is unknown
-            resolve(stdout.trim());
-          }
-        } catch (error) {
-          // If JSON parsing fails, return raw output
-          resolve(stdout.trim());
+        if (contents.length > 0) {
+          resolve(contents.join('\n').trim());
+        } else {
+          // Last resort: return all non-JSON lines
+          const textLines = jsonlLines.filter(l => !l.startsWith('{')).join('\n').trim();
+          resolve(textLines || jsonlLines.join('\n') || 'No response from Codex CLI');
         }
       });
     });

@@ -5,7 +5,7 @@
  */
 
 import { Mission, MissionState } from '@one4all/kernel';
-import type { EvidencePackMetadata } from '@one4all/kernel/src/state-machine/types';
+import type { EvidencePackMetadata } from '@one4all/kernel';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { fetchStockPrice, fetchMultipleStockPrices, type StockPriceData } from '../stock-price.js';
 import { getAdapterForAgent } from '../agent-adapter-mapping.js';

@@ -5,10 +5,8 @@
  * Supports: gemini-cli, claude-cli, zai-api
  */
 
-import type { Adapter } from '@one4all/adapters';
-import type { AdapterConfig } from '@one4all/adapters/src/types/adapter.types';
-import { createCLIAdapter } from '@one4all/adapters';
-import { ZAIAdapter, type ZAIAdapterConfig } from '@one4all/adapters';
+import type { Adapter, AdapterConfig } from '@one4all/adapters';
+import { createCLIAdapter, ZAIAdapter, type ZAIAdapterConfig } from '@one4all/adapters';
 
 export type UnifiedAdapterType = 'gemini-cli' | 'claude-cli' | 'zai-api';
 

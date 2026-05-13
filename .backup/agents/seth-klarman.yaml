@@ -12,10 +12,10 @@ description: "Absolute return focus with margin of safety. Capital preservation 
 # Model Selection
 model:
   primary:
-    provider: claude-cli
+    provider: claude
     model: claude-opus-4-5
   fallback:
-    - provider: gemini-cli
+    - provider: gemini
       model: gemini-2-flash
 
 # Identity

@@ -13,6 +13,12 @@ export type {
   Brief,
   TransitionResult,
   Decision,
+  StateTransition,
+  MissionConfig,
+  MissionStateData,
+  EvidencePackMetadata,
+  DecisionState as SMDecisionState,
+  FollowUpEvent as SMFollowUpEvent,
 } from './state-machine/types';
 export { MissionState } from './state-machine/types';
 

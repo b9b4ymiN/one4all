@@ -7,7 +7,7 @@
 
 import { MissionStateMachine } from '@one4all/kernel';
 import { Mission, MissionState } from '@one4all/kernel';
-import type { StateTransition } from '@one4all/kernel/src/state-machine/types';
+import type { StateTransition } from '@one4all/kernel';
 import { getMissionStorage, type StoredMission } from './mission-storage.js';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { join } from 'path';

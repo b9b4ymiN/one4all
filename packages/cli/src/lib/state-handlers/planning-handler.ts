@@ -5,7 +5,7 @@
  */
 
 import { Mission, MissionState } from '@one4all/kernel';
-import type { MissionConfig } from '@one4all/kernel/src/state-machine/types';
+import type { MissionConfig } from '@one4all/kernel';
 
 /**
  * Handle PLANNING state

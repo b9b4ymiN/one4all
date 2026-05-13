@@ -47,9 +47,13 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    Adapter Layer                             │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  Claude  │  │  Gemini  │  │    ZAI   │  │ Fallback │   │
-│  │    CLI   │  │    CLI   │  │   API    │  │ Manager  │   │
+│  │  Claude  │  │  Gemini  │  │   Codex  │  │ Fallback │   │
+│  │    CLI   │  │    CLI   │  │    CLI   │  │ Manager  │   │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
+│  ┌──────────┐  ┌──────────┐                               │
+│  │    ZAI   │  │  Human   │                               │
+│  │   API    │  │   Gate   │                               │
+│  └──────────┘  └──────────┘                               │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -72,8 +76,9 @@
 | **Package Manager** | pnpm 8+ |
 | **Testing** | Vitest |
 | **CLI Framework** | Commander.js |
-| **LLM Backends** | Gemini CLI, Claude CLI, ZAI API |
+| **LLM Backends** | Claude CLI, Gemini CLI, Codex CLI, ZAI API |
 | **Data Source** | Yahoo Finance API |
+| **Storage** | File-based (~/.one4all/) |
 
 ## Project Structure
 
@@ -134,6 +139,10 @@ gemini auth login
 # Claude CLI (optional but recommended)
 npm install -g @anthropic-ai/claude-code
 claude auth login
+
+# Codex CLI (optional)
+npm install -g @openai/codex
+codex auth login
 ```
 
 ### 2. ZAI API Setup
@@ -151,20 +160,29 @@ Agents are distributed across available providers:
 
 | Provider | Agents | Purpose |
 |----------|--------|---------|
-| **gemini-cli** | 6 | Fast research, consensus, portfolio allocation |
-| **zai-api** | 6 | Risk analysis, devil's advocate, quality checks |
-| **claude-cli** | 4 | DCF valuation, synthesis, complex reasoning |
+| **claude-cli** | 15 | Primary for most agents - high-quality reasoning |
+| **gemini-cli** | All | Fallback for claude-cli |
+| **codex-cli** | All | Fallback for gemini-cli |
 
-**Full mapping:**
-- `claude-cli`: damodaran-valuation, cio-synthesizer, greenwald-evasion, michael-burry
-- `gemini-cli`: researcher-set, consensus-analyst, kessler-moat, allocator-steward, leveraged-franchise, portfolio-allocator, portfolio-manager
-- `zai-api`: klarman-downside, forensic-accountant, devil-advocate, downside-protection, klamran-quality, seth-klarman
+**CLI Adapter Features:**
+- **Health checks**: Verify CLI tool availability and latency
+- **Automatic fallback**: Seamlessly switch between CLI tools
+- **JSON parsing**: Handles different output formats from each CLI
+- **Timeout handling**: Configurable per-adapter timeouts
+- **Error recovery**: Graceful degradation on failures
 
 ## Quick Start
 
 ```bash
-# Check system health
-one4all kernel status
+# Check system health (CLI tools, storage, configs)
+one4all observe health
+
+# List available agents and domains
+one4all agents list
+one4all domains list
+
+# Import agents from source YAMLs
+one4all agents import --all
 
 # Create a mission
 one4all mission create \
@@ -209,6 +227,126 @@ This data is:
 - Fetched BEFORE prompting LLMs (no hallucinated prices)
 - Passed to all analysts for accurate analysis
 - Stored in mission reports for reference
+
+## CLI Management Commands
+
+### Agent Lifecycle Management
+
+```bash
+# List all agents
+one4all agents list
+
+# Show agent details
+one4all agents show damodaran-valuation
+
+# Create new agent
+one4all agents create --id tech-analyst --name "Tech Analyst" --domain investment-war-room
+
+# Edit agent
+one4all agents edit damodaran-valuation --set-name "New Name"
+
+# Remove agent
+one4all agents remove old-agent
+
+# Import from source YAMLs
+one4all agents import --all
+
+# Export agent config
+one4all agents export damodaran-valuation --output agent.yaml
+
+# Test agent with CLI adapter
+one4all agents test damodaran-valuation --fixture test-prompt.yaml
+
+# Backup/restore
+one4all agents backup damodaran-valuation
+one4all agents restore damodaran-valuation --from backup.yaml
+```
+
+### Domain Management
+
+```bash
+# List all domains
+one4all domains list
+
+# Show domain details
+one4all domains show investment-war-room
+
+# Create new domain (with templates)
+one4all domains create --id my-domain --template investment-war-room
+
+# Edit domain
+one4all domains edit my-domain --set-name "My Domain"
+
+# Remove domain
+one4all domains remove my-domain
+
+# Validate domain
+one4all domains validate investment-war-room --check-agents --check-constitution
+
+# List domain agents
+one4all domains agents investment-war-room
+```
+
+### Validation Commands
+
+```bash
+# Validate agent configuration
+one4all validate agent damodaran-valuation --schema --runtime
+
+# Validate domain configuration
+one4all validate domain investment-war-room --check-agents --check-constitution
+
+# Validate constitution
+one4all validate constitution investment-war-room --rules --enforcement
+
+# Validate everything
+one4all validate all --include-constitution
+```
+
+### Observability Commands
+
+```bash
+# Health check (CLI tools, storage, environment)
+one4all observe health --verbose
+
+# Observe mission progress
+one4all observe mission MISSION-ID --follow
+
+# Observe agent performance
+one4all observe agents --domain investment-war-room --active-only
+
+# View system logs
+one4all observe logs -n 100 --follow --level error
+
+# Export metrics
+one4all observe export --format csv --output metrics.csv
+```
+
+### Journal Commands
+
+```bash
+# List journal entries
+one4all journal list --domain investment-war-room
+
+# View entry for ticker
+one4all journal view --ticker NVDA
+
+# Add new entry
+one4all journal add --ticker NVDA --decision "LONG" --fair-value 250 --thesis "Strong moat"
+
+# Update outcome
+one4all journal update --entry-id ID --outcome "GAINED 20%"
+```
+
+### Team Commands
+
+```bash
+# Show team/agent health
+one4all team status
+
+# List all teams
+one4all team list
+```
 
 ## Usage Examples
 
@@ -256,9 +394,9 @@ const result = await adapter.run(prompt);
 - And 12 more specialists
 
 **Provider Distribution:**
-- **Claude CLI** (4): Complex valuation, synthesis
-- **ZAI API** (6): Risk analysis, devil's advocate
-- **Gemini CLI** (6): Research, consensus, allocation
+- **Claude CLI** (15): Primary provider for all agents
+- **Gemini CLI** (fallback): Backup when Claude CLI unavailable
+- **Codex CLI** (fallback): Additional backup option
 
 **Constitution Rules:**
 - Tier 1 sources required for material claims

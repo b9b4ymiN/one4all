@@ -1,6 +1,7 @@
 {
   "name": "@one4all/cli",
   "version": "0.1.0",
+  "type": "module",
   "bin": {
     "one4all": "./dist/index.js"
   },

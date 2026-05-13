@@ -12,12 +12,12 @@ description: "DCF-first valuation analyst. Story must become numbers."
 # Model Selection
 model:
   primary:
-    provider: claude-cli
+    provider: claude
     model: claude-opus-4-5
   fallback:
-    - provider: codex-cli
+    - provider: zai
       model: zai-default
-    - provider: gemini-cli
+    - provider: gemini
       model: gemini-2-flash
 
 # Identity

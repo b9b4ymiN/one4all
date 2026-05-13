@@ -5,10 +5,14 @@
  */
 
 import { Mission, MissionState } from '@one4all/kernel';
-import type { Decision, DecisionState, FollowUpEvent } from '@one4all/kernel/src/state-machine/types';
+import type { Decision, SMDecisionState, SMFollowUpEvent } from '@one4all/kernel';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { getAdapterForAgent } from '../agent-adapter-mapping.js';
 import { createUnifiedAdapter } from '../adapter-factory.js';
+
+// Type aliases for compatibility
+type DecisionState = SMDecisionState;
+type FollowUpEvent = SMFollowUpEvent;
 
 export interface SynthesisData {
   agent_id: string;

@@ -8,7 +8,7 @@ import { mkdir, readFile, writeFile, readdir, unlink } from 'fs/promises';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import type { MissionStateData } from '@one4all/kernel/src/state-machine/types';
+import type { MissionStateData } from '@one4all/kernel';
 
 export interface StoredMission {
   mission_id: string;

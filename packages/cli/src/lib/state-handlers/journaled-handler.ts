@@ -5,7 +5,7 @@
  */
 
 import { Mission } from '@one4all/kernel';
-import type { Decision } from '@one4all/kernel/src/state-machine/types';
+import type { Decision } from '@one4all/kernel';
 import { join } from 'path';
 import { homedir } from 'os';
 import { promises as fs } from 'fs';

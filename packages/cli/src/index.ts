@@ -51,10 +51,13 @@ import chalk from 'chalk';
 // Import command groups
 import { createMissionCommands } from './commands/mission.js';
 import { createAgentCommands } from './commands/agent.js';
+import { createAgentsManageCommands } from './commands/agents-manage.js';
 import { createTeamCommands } from './commands/team.js';
 import { createJournalCommands } from './commands/journal.js';
 import { createConstitutionCommands } from './commands/constitution.js';
 import { createDomainCommands } from './commands/domain.js';
+import { createDomainsManageCommands } from './commands/domains-manage.js';
+import { createValidationCommands } from './commands/validate.js';
 import { createKernelCommands } from './commands/kernel.js';
 import { createReportCommands } from './commands/report.js';
 import {
@@ -63,6 +66,7 @@ import {
   createScorecardCommands,
   createCostCommands,
 } from './commands/observability.js';
+import { createObserveCommands } from './commands/observe.js';
 
 const program = new Command();
 
@@ -91,16 +95,20 @@ ${chalk.dim('Report bugs:')} https://github.com/yourusername/one4all/issues
 // Add command groups
 program.addCommand(createMissionCommands());
 program.addCommand(createAgentCommands());
+program.addCommand(createAgentsManageCommands());
 program.addCommand(createTeamCommands());
 program.addCommand(createJournalCommands());
 program.addCommand(createConstitutionCommands());
 program.addCommand(createDomainCommands());
+program.addCommand(createDomainsManageCommands());
+program.addCommand(createValidationCommands());
 program.addCommand(createKernelCommands());
 program.addCommand(createReportCommands());
 program.addCommand(createObservabilityCommands());
 program.addCommand(createAuditCommands());
 program.addCommand(createScorecardCommands());
 program.addCommand(createCostCommands());
+program.addCommand(createObserveCommands());
 
 // Parse and execute
 program.parse();

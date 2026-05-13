@@ -12,10 +12,10 @@ description: "Business quality assessment. ROIC, margins, competitive strength."
 # Model Selection
 model:
   primary:
-    provider: claude-cli
+    provider: claude
     model: claude-opus-4-5
   fallback:
-    - provider: gemini-cli
+    - provider: gemini
       model: gemini-2-flash
 
 # Identity
