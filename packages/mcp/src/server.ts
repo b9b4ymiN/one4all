@@ -43,6 +43,14 @@ import type {
   DebateResult,
 } from '@one4all/kernel';
 
+// Import handler modules
+import * as agentHandler from './modules/agent-handler.js';
+import * as domainHandler from './modules/domain-handler.js';
+import * as missionEnhanced from './modules/mission-enhanced.js';
+import * as constitutionHandler from './modules/constitution-handler.js';
+import * as journalHandler from './modules/journal-handler.js';
+import * as validator from './modules/validator.js';
+
 /**
  * MCP Server configuration
  */
@@ -60,13 +68,50 @@ export interface MCPServerConfig {
  *
  * Exposes kernel functionality as MCP tools and resources:
  *
- * **Tools:**
+ * **Tools (25 total):**
+ *
+ * Mission Management (9):
  * - create_mission: Create a new analysis mission
  * - get_mission_status: Get mission status and state
  * - transition_mission: Manually transition mission state
  * - list_missions: List all missions
+ * - mission_run: Execute mission (fire-and-forget)
+ * - mission_abort: Abort running mission
+ * - mission_replay: Replay mission with new config
  * - get_evidence_pack: Get evidence pack for a mission
  * - get_debate_summary: Get debate summary for a mission
+ *
+ * Agent Management (7):
+ * - agent_create: Create new agent
+ * - agent_show: Show agent details
+ * - agent_edit: Edit existing agent
+ * - agent_remove: Delete agent
+ * - agent_list: List all agents
+ * - agent_import: Import agents from YAML
+ * - agent_export: Export agent configuration
+ *
+ * Domain Management (6):
+ * - domain_create: Create new domain
+ * - domain_show: Show domain details
+ * - domain_edit: Edit domain config
+ * - domain_remove: Delete domain
+ * - domain_list: List all domains
+ * - domain_validate: Validate domain configuration
+ *
+ * Constitution Management (3):
+ * - constitution_load: Load constitution for domain
+ * - constitution_validate: Validate constitution rules
+ * - constitution_list: List available constitutions
+ *
+ * Journal Operations (2):
+ * - journal_update: Update journal entry outcome
+ * - journal_list: List all journal entries
+ *
+ * Validation (4):
+ * - validate_agents: Validate all agents
+ * - validate_domains: Validate all domains
+ * - validate_constitutions: Validate all constitutions
+ * - validate_all: Run all validations
  *
  * **Resources:**
  * - mission://{missionId}: Full mission data
@@ -168,7 +213,7 @@ export class One4AllMCPServer {
             },
           },
           required: ['type', 'domain', 'description'],
-        },
+        } as any,
       },
       {
         name: 'get_mission_status',
@@ -182,7 +227,7 @@ export class One4AllMCPServer {
             },
           },
           required: ['mission_id'],
-        },
+        } as any,
       },
       {
         name: 'transition_mission',
@@ -215,7 +260,7 @@ export class One4AllMCPServer {
             },
           },
           required: ['mission_id', 'target_state'],
-        },
+        } as any,
       },
       {
         name: 'list_missions',
@@ -236,7 +281,7 @@ export class One4AllMCPServer {
               description: 'Maximum number of missions to return',
             },
           },
-        },
+        } as any,
       },
       {
         name: 'get_evidence_pack',
@@ -250,7 +295,7 @@ export class One4AllMCPServer {
             },
           },
           required: ['mission_id'],
-        },
+        } as any,
       },
       {
         name: 'get_debate_summary',
@@ -264,8 +309,14 @@ export class One4AllMCPServer {
             },
           },
           required: ['mission_id'],
-        },
+        } as any,
       },
+      ...missionEnhanced.getMissionEnhancedTools(),
+      ...agentHandler.getAgentTools(),
+      ...domainHandler.getDomainTools(),
+      ...constitutionHandler.getConstitutionTools(),
+      ...journalHandler.getJournalTools(),
+      ...validator.getValidatorTools(),
     ];
   }
 
@@ -282,6 +333,7 @@ export class One4AllMCPServer {
 
     try {
       switch (name) {
+        // Mission tools (base)
         case 'create_mission':
           return await this.createMission(args);
 
@@ -299,6 +351,87 @@ export class One4AllMCPServer {
 
         case 'get_debate_summary':
           return await this.getDebateSummary(args);
+
+        // Mission enhanced tools
+        case 'mission_run':
+          return await missionEnhanced.handleMissionRun(args, this.stateMachine, this.missions);
+
+        case 'mission_abort':
+          return await missionEnhanced.handleMissionAbort(args, this.missions);
+
+        case 'mission_replay':
+          return await missionEnhanced.handleMissionReplay(args, this.stateMachine, this.missions);
+
+        // Agent tools
+        case 'agent_create':
+          return await agentHandler.handleAgentCreate(args);
+
+        case 'agent_show':
+          return await agentHandler.handleAgentShow(args);
+
+        case 'agent_edit':
+          return await agentHandler.handleAgentEdit(args);
+
+        case 'agent_remove':
+          return await agentHandler.handleAgentRemove(args);
+
+        case 'agent_list':
+          return await agentHandler.handleAgentList(args);
+
+        case 'agent_import':
+          return await agentHandler.handleAgentImport(args);
+
+        case 'agent_export':
+          return await agentHandler.handleAgentExport(args);
+
+        // Domain tools
+        case 'domain_create':
+          return await domainHandler.handleDomainCreate(args);
+
+        case 'domain_show':
+          return await domainHandler.handleDomainShow(args);
+
+        case 'domain_edit':
+          return await domainHandler.handleDomainEdit(args);
+
+        case 'domain_remove':
+          return await domainHandler.handleDomainRemove(args);
+
+        case 'domain_list':
+          return await domainHandler.handleDomainList();
+
+        case 'domain_validate':
+          return await domainHandler.handleDomainValidate(args);
+
+        // Constitution tools
+        case 'constitution_load':
+          return await constitutionHandler.handleConstitutionLoad(args);
+
+        case 'constitution_validate':
+          return await constitutionHandler.handleConstitutionValidate(args);
+
+        case 'constitution_list':
+          return await constitutionHandler.handleConstitutionList();
+
+        // Journal tools
+        case 'journal_update':
+          return await journalHandler.handleJournalUpdate(args);
+
+        case 'journal_list':
+          return await journalHandler.handleJournalList();
+
+        // Validation tools
+        case 'validate_agents':
+          return await validator.handleValidateAgents(args);
+
+        case 'validate_domains':
+          return await validator.handleValidateDomains();
+
+        case 'validate_constitutions':
+          return await validator.handleValidateConstitutions();
+
+        case 'validate_all':
+          return await validator.handleValidateAll();
 
         default:
           return {

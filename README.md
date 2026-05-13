@@ -2,7 +2,7 @@
 
 > A sophisticated multi-agent system orchestrating AI specialists through structured debate, evidence validation, and decision governance.
 
-[![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)](https://github.com/dasimoa/one4all)
+[![Tests](https://img.shields.io/badge/tests-625%20passing-brightgreen)](https://github.com/dasimoa/one4all)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org/)
 [![MCP](https://img.shields.io/badge/MCP-1.29.0-purple)](https://modelcontextprotocol.io/)
@@ -103,7 +103,7 @@ one4all/
 │   │   ├── src/lib/stock-price.ts          # Real-time price fetching
 │   │   └── src/lib/state-handlers/         # State machine handlers
 │   ├── mcp/                 # MCP server for one4all kernel
-│   │   └── dist/                    # Compiled MCP server (6 tools, 5 resources)
+│   │   └── dist/                    # Compiled MCP server (31 tools, 5 resources)
 │   ├── mcp-server/          # Unified MCP server (missions + stock prices)
 │   ├── observability/       # Logging & monitoring
 │   └── shared/              # Shared utilities and types
@@ -243,25 +243,55 @@ one4all provides full [Model Context Protocol (MCP)](https://modelcontextprotoco
 
 | Server | Tools | Resources | Description |
 |--------|-------|-----------|-------------|
-| **@one4all/mcp** | 6 | 5 | Full kernel integration (missions, evidence, debates) |
-| **@one4all/mcp-server** | 8 | 5 | Unified server (missions + stock prices) |
+| **@one4all/mcp** | 31 | 5 | Full kernel integration (missions, agents, domains, validation) |
 | **stock-price-server** | 2 | 0 | Standalone stock price data |
 
 ### Available Tools
 
-**Mission Management:**
+**Mission Management (6 tools):**
 - `create_mission` - Create new analysis missions
 - `get_mission_status` - Get mission state and metadata
 - `transition_mission` - Advance mission through state machine
 - `list_missions` - List/filter missions
-
-**Analysis:**
 - `get_evidence_pack` - Retrieve evidence for a mission
 - `get_debate_summary` - Get structured debate results
 
-**Stock Prices:**
-- `get_stock_price` - Get current stock price with metrics
-- `get_multiple_prices` - Get prices for multiple tickers
+**Enhanced Missions (3 tools):**
+- `mission_run` - Fire-and-forget mission execution
+- `mission_abort` - Abort a running mission
+- `mission_replay` - Replay completed mission
+
+**Agent Management (7 tools):**
+- `agent_create` - Create new agent
+- `agent_show` - Show agent details
+- `agent_edit` - Edit existing agent
+- `agent_remove` - Delete agent
+- `agent_list` - List all agents
+- `agent_import` - Import agents from YAML
+- `agent_export` - Export agent configuration
+
+**Domain Management (6 tools):**
+- `domain_create` - Create new domain
+- `domain_show` - Show domain details
+- `domain_edit` - Edit domain
+- `domain_remove` - Delete domain
+- `domain_list` - List all domains
+- `domain_validate` - Validate domain configuration
+
+**Constitution Management (3 tools):**
+- `constitution_load` - Load constitution rules
+- `constitution_validate` - Validate constitution
+- `constitution_list` - List available constitutions
+
+**Journal Management (2 tools):**
+- `journal_update` - Update journal entry
+- `journal_list` - List journal entries
+
+**Validation (4 tools):**
+- `validate_agents` - Validate all agents
+- `validate_domains` - Validate all domains
+- `validate_constitutions` - Validate all constitutions
+- `validate_all` - Validate everything
 
 ### Available Resources
 
@@ -481,7 +511,7 @@ const result = await adapter.run(prompt);
 ## Test Coverage
 
 ```
-605 tests passing across 27 test files
+625 tests passing across 28 test files
 
 ├── Constitution Enforcer:   30 tests
 ├── Debate Controller:        32 tests
@@ -490,6 +520,7 @@ const result = await adapter.run(prompt);
 ├── Parallel Execution:       24 tests
 ├── Adapters:                 65 tests
 ├── CLI:                     195 tests
+├── MCP:                      56 tests
 ├── Integration:             16 tests
 └── Observability:            17 tests
 ```

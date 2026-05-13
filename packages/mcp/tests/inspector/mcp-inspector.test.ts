@@ -43,18 +43,50 @@ describe('MCP Inspector Validation', () => {
       server = new One4AllMCPServer(config);
     });
 
-    it('should expose all 6 MCP tools with correct schemas', async () => {
+    it('should expose all 31 MCP tools with correct schemas', async () => {
       const tools = server['getToolDefinitions']();
 
-      expect(tools).toHaveLength(6);
+      expect(tools).toHaveLength(31);
 
       const toolNames = tools.map(t => t.name);
+      // Core mission tools
       expect(toolNames).toContain('create_mission');
       expect(toolNames).toContain('get_mission_status');
       expect(toolNames).toContain('transition_mission');
       expect(toolNames).toContain('list_missions');
       expect(toolNames).toContain('get_evidence_pack');
       expect(toolNames).toContain('get_debate_summary');
+      // Enhanced mission tools
+      expect(toolNames).toContain('mission_run');
+      expect(toolNames).toContain('mission_abort');
+      expect(toolNames).toContain('mission_replay');
+      // Agent tools
+      expect(toolNames).toContain('agent_create');
+      expect(toolNames).toContain('agent_show');
+      expect(toolNames).toContain('agent_edit');
+      expect(toolNames).toContain('agent_remove');
+      expect(toolNames).toContain('agent_list');
+      expect(toolNames).toContain('agent_import');
+      expect(toolNames).toContain('agent_export');
+      // Domain tools
+      expect(toolNames).toContain('domain_create');
+      expect(toolNames).toContain('domain_show');
+      expect(toolNames).toContain('domain_edit');
+      expect(toolNames).toContain('domain_remove');
+      expect(toolNames).toContain('domain_list');
+      expect(toolNames).toContain('domain_validate');
+      // Constitution tools
+      expect(toolNames).toContain('constitution_load');
+      expect(toolNames).toContain('constitution_validate');
+      expect(toolNames).toContain('constitution_list');
+      // Journal tools
+      expect(toolNames).toContain('journal_update');
+      expect(toolNames).toContain('journal_list');
+      // Validation tools
+      expect(toolNames).toContain('validate_agents');
+      expect(toolNames).toContain('validate_domains');
+      expect(toolNames).toContain('validate_constitutions');
+      expect(toolNames).toContain('validate_all');
 
       // Verify tool schemas
       const createMission = tools.find(t => t.name === 'create_mission')!;
