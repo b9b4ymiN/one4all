@@ -525,23 +525,73 @@ describe('One4AllMCPServer', () => {
     });
   });
 
-  describe('Evidence and Debate Placeholders', () => {
-    it('should return placeholder for evidence pack', async () => {
-      const result = await server['getEvidencePack']({ mission_id: 'test' });
+  describe('Evidence and Debate Tools', () => {
+    it('should return message for non-existent mission evidence pack', async () => {
+      const result = await server['getEvidencePack']({ mission_id: 'non-existent' });
 
       expect(result.content[0].type).toBe('text');
       const pack = JSON.parse(result.content[0].text);
-      expect(pack.mission_id).toBe('test');
-      expect(pack.note).toContain('full kernel integration');
+      expect(pack.mission_id).toBe('non-existent');
+      // Should have error or note about no evidence pack
+      expect(pack.error || pack.note).toBeDefined();
     });
 
-    it('should return placeholder for debate summary', async () => {
-      const result = await server['getDebateSummary']({ mission_id: 'test' });
+    it('should return evidence data for existing mission', async () => {
+      // First create a mission
+      const createResult = await server['handleCallTool']({
+        name: 'create_mission',
+        arguments: {
+          type: 'stock_analysis',
+          domain: 'investment-war-room',
+          description: 'Test analysis',
+          ticker: 'TEST',
+        },
+      });
+
+      const created = JSON.parse(createResult.content[0].text);
+
+      // Then get evidence pack
+      const result = await server['getEvidencePack']({ mission_id: created.mission_id });
+
+      expect(result.content[0].type).toBe('text');
+      const pack = JSON.parse(result.content[0].text);
+      expect(pack.mission_id).toBe(created.mission_id);
+      // Should have evidence structure even if no pack exists yet
+      expect(pack.sources || pack.note).toBeDefined();
+    });
+
+    it('should return message for non-existent mission debate summary', async () => {
+      const result = await server['getDebateSummary']({ mission_id: 'non-existent' });
 
       expect(result.content[0].type).toBe('text');
       const summary = JSON.parse(result.content[0].text);
-      expect(summary.mission_id).toBe('test');
-      expect(summary.note).toContain('full kernel integration');
+      expect(summary.mission_id).toBe('non-existent');
+      // Should have error or note about no debate
+      expect(summary.error || summary.note).toBeDefined();
+    });
+
+    it('should return debate summary structure for existing mission', async () => {
+      // First create a mission
+      const createResult = await server['handleCallTool']({
+        name: 'create_mission',
+        arguments: {
+          type: 'stock_analysis',
+          domain: 'investment-war-room',
+          description: 'Test analysis',
+          ticker: 'TEST',
+        },
+      });
+
+      const created = JSON.parse(createResult.content[0].text);
+
+      // Then get debate summary
+      const result = await server['getDebateSummary']({ mission_id: created.mission_id });
+
+      expect(result.content[0].type).toBe('text');
+      const summary = JSON.parse(result.content[0].text);
+      expect(summary.mission_id).toBe(created.mission_id);
+      // Should have debate structure even if no debate exists yet
+      expect(summary.error || summary.note || summary.debate_id).toBeDefined();
     });
   });
 

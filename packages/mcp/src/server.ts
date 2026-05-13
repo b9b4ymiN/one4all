@@ -23,13 +23,25 @@ import {
   GetPromptRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { readFile, readdir, access } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
+import * as yaml from 'js-yaml';
 
-import { MissionStateMachine } from '@one4all/kernel';
+import { MissionStateMachine, createEvidenceController, EvidenceController, createDebateController, DebateController } from '@one4all/kernel';
 import type {
   Mission,
   Brief,
   MissionState,
 } from '@one4all/kernel/src/state-machine/types.js';
+import type {
+  EvidencePack,
+  EvidenceSummary,
+} from '@one4all/kernel';
+import type {
+  DebateSession,
+  DebateResult,
+} from '@one4all/kernel';
 
 /**
  * MCP Server configuration
@@ -39,6 +51,8 @@ export interface MCPServerConfig {
   version: string;
   stateMachine: MissionStateMachine;
   domainsPath: string;
+  evidenceController?: EvidenceController;
+  debateController?: DebateController;
 }
 
 /**
@@ -65,11 +79,15 @@ export class One4AllMCPServer {
   private server: Server;
   private config: MCPServerConfig;
   private stateMachine: MissionStateMachine;
+  private evidenceController: EvidenceController;
+  private debateController: DebateController;
   private missions: Map<string, Mission> = new Map();
 
   constructor(config: MCPServerConfig) {
     this.config = config;
     this.stateMachine = config.stateMachine;
+    this.evidenceController = config.evidenceController ?? createEvidenceController();
+    this.debateController = config.debateController ?? createDebateController();
 
     this.server = new Server(
       {
@@ -445,20 +463,102 @@ export class One4AllMCPServer {
   }
 
   /**
-   * Get evidence pack (placeholder)
+   * Get evidence pack for a mission
    */
   private async getEvidencePack(args: any): Promise<{
     content: Array<{ type: string; text: string }>;
   }> {
-    // This would integrate with the EvidenceController
+    const { mission_id } = args;
+
+    // Check if mission exists
+    const mission = this.missions.get(mission_id);
+    if (!mission) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                mission_id,
+                error: 'Mission not found',
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+
+    // Get evidence pack from controller
+    const pack = this.evidenceController.getPack(mission_id);
+
+    if (!pack) {
+      // Return summary if no pack exists
+      const summary = this.evidenceController.generateSummary(mission_id);
+      if (summary) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(summary, null, 2),
+            },
+          ],
+        };
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                mission_id,
+                note: 'No evidence pack found for this mission. Evidence packs are created during the RESEARCHING phase.',
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+
+    // Get scored evidence for additional context
+    const scoredEvidence = this.evidenceController.scorePack(mission_id);
+
     return {
       content: [
         {
           type: 'text',
           text: JSON.stringify(
             {
-              mission_id: args.mission_id,
-              note: 'Evidence pack retrieval requires full kernel integration',
+              mission_id: pack.missionId,
+              subject: pack.subject,
+              ticker: pack.ticker,
+              created_at: pack.createdAt,
+              sources: {
+                total: pack.sources.length,
+                by_tier: pack.metadata.itemsByTier,
+                average_relevance: pack.metadata.averageRelevance,
+              },
+              items: {
+                total: pack.items.length,
+                top_claims: scoredEvidence
+                  ?.slice(0, 10)
+                  .map(item => ({
+                    claim: item.claim,
+                    score: item.score,
+                    tier: item.breakdown.tier,
+                  })) || [],
+              },
+              sources_list: pack.sources.map(s => ({
+                id: s.id,
+                type: s.type,
+                title: s.title,
+                tier: s.tier,
+                url: s.url,
+              })),
             },
             null,
             2
@@ -469,24 +569,106 @@ export class One4AllMCPServer {
   }
 
   /**
-   * Get debate summary (placeholder)
+   * Get debate summary for a mission
    */
   private async getDebateSummary(args: any): Promise<{
     content: Array<{ type: string; text: string }>;
   }> {
-    // This would integrate with the DebateController
+    const { mission_id } = args;
+
+    // Check if mission exists
+    const mission = this.missions.get(mission_id);
+    if (!mission) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                mission_id,
+                error: 'Mission not found',
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+
+    // Get all debate sessions for this mission
+    const debates = this.debateController.getMissionDebates(mission_id);
+
+    if (debates.length === 0) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                mission_id,
+                note: 'No debate sessions found for this mission. Debates occur during the DEBATING phase.',
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+
+    // Get the most recent active debate
+    const latestDebate = debates[debates.length - 1];
+    const debateStats = this.debateController.getDebateStats(latestDebate.id);
+
+    // Format the debate summary
+    const summary = {
+      mission_id,
+      debate_id: latestDebate.id,
+      current_phase: latestDebate.current_phase,
+      current_round: latestDebate.current_round,
+      started_at: latestDebate.started_at,
+      completed: !!latestDebate.completed_at,
+      converged: latestDebate.converged,
+
+      // Positions
+      positions: Array.from(latestDebate.positions.values()).map(p => ({
+        analyst_id: p.analyst_id,
+        stance: p.stance,
+        conviction: p.conviction,
+        conviction_score: p.conviction_score,
+        thesis_summary: p.thesis_summary,
+        key_arguments: p.key_arguments,
+      })),
+
+      // Statistics
+      statistics: debateStats ? {
+        total_contributions: debateStats.total_contributions,
+        contributions_by_phase: debateStats.contributions_by_phase,
+        contributions_by_analyst: debateStats.contributions_by_analyst,
+        average_conviction: debateStats.average_conviction,
+        conviction_range: debateStats.conviction_range,
+        moderation_actions: debateStats.moderation_actions,
+      } : null,
+
+      // Recent contributions (last 5)
+      recent_contributions: latestDebate.contributions.slice(-5).map(c => ({
+        analyst_id: c.analyst_id,
+        phase: c.phase,
+        content: c.content.substring(0, 200) + (c.content.length > 200 ? '...' : ''),
+        conviction_score: c.conviction_score,
+        timestamp: c.timestamp,
+      })),
+
+      // Moderation
+      moderation_actions: latestDebate.moderation_actions.length,
+    };
+
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(
-            {
-              mission_id: args.mission_id,
-              note: 'Debate summary retrieval requires full kernel integration',
-            },
-            null,
-            2
-          ),
+          text: JSON.stringify(summary, null, 2),
         },
       ],
     };
@@ -555,55 +737,335 @@ export class One4AllMCPServer {
       }
 
       case 'report': {
-        // Would generate actual report
+        // Generate actual report from mission data
+        const mission = this.missions.get(id);
+        if (!mission) {
+          throw new Error(`Mission not found: ${id}`);
+        }
+
+        // Get additional context
+        const evidence = this.evidenceController.getPack(id);
+        const debates = this.debateController.getMissionDebates(id);
+
+        let report = `# Investment Analysis Report\n\n`;
+        report += `## Mission Information\n`;
+        report += `- **Mission ID**: ${mission.id}\n`;
+        report += `- **State**: ${mission.state.current_state}\n`;
+        report += `- **Created**: ${mission.created_at.toISOString()}\n`;
+        report += `- **Type**: ${mission.state.brief?.type || 'N/A'}\n`;
+        report += `- **Domain**: ${mission.state.brief?.domain || 'N/A'}\n`;
+        report += `- **Description**: ${mission.state.brief?.description || 'N/A'}\n`;
+
+        if (mission.state.brief?.ticker) {
+          report += `- **Ticker**: ${mission.state.brief.ticker}\n`;
+        }
+
+        // Evidence section
+        if (evidence) {
+          report += `\n## Evidence Summary\n`;
+          report += `- **Total Sources**: ${evidence.sources.length}\n`;
+          report += `- **Total Items**: ${evidence.items.length}\n`;
+          report += `- **Average Relevance**: ${evidence.metadata.averageRelevance.toFixed(2)}\n`;
+
+          const tierBreakdown = Object.entries(evidence.metadata.itemsByTier)
+            .map(([tier, count]) => `Tier ${tier}: ${count}`)
+            .join(', ');
+          report += `- **Sources by Tier**: ${tierBreakdown}\n`;
+        }
+
+        // Debate section
+        if (debates.length > 0) {
+          const latestDebate = debates[debates.length - 1];
+          report += `\n## Debate Summary\n`;
+          report += `- **Debate ID**: ${latestDebate.id}\n`;
+          report += `- **Phase**: ${latestDebate.current_phase}\n`;
+          report += `- **Round**: ${latestDebate.current_round}\n`;
+          report += `- **Contributions**: ${latestDebate.contributions.length}\n`;
+          report += `- **Converged**: ${latestDebate.converged ? 'Yes' : 'No'}\n`;
+
+          if (latestDebate.positions.size > 0) {
+            report += `\n### Analyst Positions\n`;
+            for (const [analystId, position] of latestDebate.positions) {
+              report += `- **${analystId}**: ${position.stance} (conviction: ${position.conviction_score})\n`;
+            }
+          }
+        }
+
+        report += `\n## Status\n`;
+        if (mission.state.current_state === 'DECIDED' || mission.state.current_state === 'JOURNALED') {
+          report += `✓ This mission has completed analysis.\n`;
+        } else if (mission.state.current_state === 'FAILED') {
+          report += `✗ This mission failed during execution.\n`;
+        } else {
+          report += `○ This mission is currently in progress.\n`;
+        }
+
         return {
           contents: [
             {
               uri,
               mimeType: 'text/markdown',
-              text: `# Report for ${id}\n\nReport generation requires full kernel integration.`,
+              text: report,
             },
           ],
         };
       }
 
       case 'journal': {
-        // Would retrieve actual journal entry
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: 'text/markdown',
-              text: `# Journal Entry for ${id}\n\nJournal retrieval requires full kernel integration.`,
-            },
-          ],
-        };
+        // Retrieve journal entry from storage
+        // Journal storage path: ~/.one4all/journal/
+        const homedir = require('os').homedir();
+        const journalPath = join(homedir, '.one4all', 'journal');
+
+        try {
+          // Check if journal directory exists
+          if (!existsSync(journalPath)) {
+            return {
+              contents: [
+                {
+                  uri,
+                  mimeType: 'text/markdown',
+                  text: `# Journal Entry for ${id}\n\nNo journal entries found. Journal directory does not exist yet.`,
+                },
+              ],
+            };
+          }
+
+          // Look for journal entry files
+          const files = await readdir(journalPath);
+          const journalFiles = files.filter(f => f.endsWith('.json') || f.endsWith('.yaml') || f.endsWith('.md'));
+
+          if (journalFiles.length === 0) {
+            return {
+              contents: [
+                {
+                  uri,
+                  mimeType: 'text/markdown',
+                  text: `# Journal Entry for ${id}\n\nNo journal entries found in ${journalPath}`,
+                },
+              ],
+            };
+          }
+
+          // Try to find a journal entry for this specific mission/ticker
+          let journalText = `# Journal Entries\n\n`;
+
+          for (const file of journalFiles) {
+            const filePath = join(journalPath, file);
+            try {
+              const content = await readFile(filePath, 'utf-8');
+              let entry: any;
+
+              if (file.endsWith('.json')) {
+                entry = JSON.parse(content);
+              } else if (file.endsWith('.yaml')) {
+                entry = yaml.load(content);
+              } else {
+                // Markdown file
+                journalText += `## ${file}\n\n${content}\n\n`;
+                continue;
+              }
+
+              // If this entry matches the mission/ticker, include it
+              if (id && (entry.mission_id === id || entry.ticker === id || file.includes(id))) {
+                journalText += `## Entry: ${entry.ticker || entry.mission_id || 'Unknown'}\n`;
+                journalText += `- **Decision**: ${entry.decision || 'N/A'}\n`;
+                journalText += `- **Fair Value**: ${entry.fair_value || 'N/A'}\n`;
+                journalText += `- **Thesis**: ${entry.thesis || 'N/A'}\n`;
+                if (entry.thesis_breakers) {
+                  journalText += `- **Thesis Breakers**: ${entry.thesis_breakers.join(', ') || 'None'}\n`;
+                }
+                journalText += `- **Created**: ${entry.created_at || new Date().toISOString()}\n\n`;
+              }
+            } catch {
+              // Skip invalid files
+            }
+          }
+
+          if (journalText === `# Journal Entries\n\n`) {
+            journalText += `No specific journal entry found for "${id}".\n\n`;
+            journalText += `Available entries: ${journalFiles.join(', ')}`;
+          }
+
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'text/markdown',
+                text: journalText,
+              },
+            ],
+          };
+        } catch (error) {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'text/markdown',
+                text: `# Journal Entry for ${id}\n\nError reading journal: ${error}`,
+              },
+            ],
+          };
+        }
       }
 
       case 'constitution': {
-        // Would load domain constitution
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: 'text/yaml',
-              text: `# Constitution for ${id}\n\nConstitution loading requires file system access.`,
-            },
-          ],
-        };
+        // Load domain constitution from YAML files
+        const domainId = id;
+
+        // Possible constitution paths
+        const possiblePaths = [
+          join(process.cwd(), 'domains', domainId, 'constitution', 'constitution.yaml'),
+          join(process.cwd(), 'domains', domainId, 'constitution.yaml'),
+          join(process.cwd(), 'domains', domainId, 'constitution', 'rules.yaml'),
+        ];
+
+        let constitutionPath: string | null = null;
+        for (const path of possiblePaths) {
+          if (existsSync(path)) {
+            constitutionPath = path;
+            break;
+          }
+        }
+
+        if (!constitutionPath) {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'text/yaml',
+                text: `# Constitution for ${domainId}\n\nConstitution file not found.\n\nSearched paths:\n${possiblePaths.map(p => `- ${p}`).join('\n')}`,
+              },
+            ],
+          };
+        }
+
+        try {
+          const content = await readFile(constitutionPath, 'utf-8');
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'text/yaml',
+                text: content,
+              },
+            ],
+          };
+        } catch (error) {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'text/yaml',
+                text: `# Constitution for ${domainId}\n\nError reading constitution: ${error}`,
+              },
+            ],
+          };
+        }
       }
 
       case 'agents': {
-        // Would list domain agents
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: 'application/json',
-              text: `[]\n\nAgent listing requires file system access.`,
-            },
-          ],
-        };
+        // List agents by domain
+        const domainId = id;
+
+        // Possible agent paths
+        const possiblePaths = [
+          join(process.cwd(), 'domains', domainId, 'agents'),
+          join(process.cwd(), 'domains', domainId),
+        ];
+
+        let agentsDir: string | null = null;
+        for (const path of possiblePaths) {
+          if (existsSync(path)) {
+            agentsDir = path;
+            break;
+          }
+        }
+
+        if (!agentsDir) {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify({
+                  domain: domainId,
+                  error: 'Domain not found',
+                  searched_paths: possiblePaths,
+                }, null, 2),
+              },
+            ],
+          };
+        }
+
+        try {
+          const files = await readdir(agentsDir);
+          const agentFiles = files.filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+
+          if (agentFiles.length === 0) {
+            return {
+              contents: [
+                {
+                  uri,
+                  mimeType: 'application/json',
+                  text: JSON.stringify({
+                    domain: domainId,
+                    agents: [],
+                    note: 'No agent YAML files found in this domain',
+                  }, null, 2),
+                },
+              ],
+            };
+          }
+
+          const agents: any[] = [];
+          for (const file of agentFiles) {
+            try {
+              const filePath = join(agentsDir, file);
+              const content = await readFile(filePath, 'utf-8');
+              const agentData = yaml.load(content) as any;
+
+              agents.push({
+                id: agentData.id,
+                name: agentData.name,
+                role: agentData.role,
+                description: agentData.description,
+                domain: agentData.domain,
+                model: agentData.model,
+                active: agentData.active ?? true,
+              });
+            } catch {
+              // Skip invalid files
+            }
+          }
+
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify({
+                  domain: domainId,
+                  count: agents.length,
+                  agents,
+                }, null, 2),
+              },
+            ],
+          };
+        } catch (error) {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify({
+                  domain: domainId,
+                  error: `Error reading agents: ${error}`,
+                }, null, 2),
+              },
+            ],
+          };
+        }
       }
 
       default:

@@ -2,9 +2,10 @@
 
 > A sophisticated multi-agent system orchestrating AI specialists through structured debate, evidence validation, and decision governance.
 
-[![Tests](https://img.shields.io/badge/tests-605%20passing-brightgreen)](https://github.com/dasimoa/one4all)
+[![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)](https://github.com/dasimoa/one4all)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org/)
+[![MCP](https://img.shields.io/badge/MCP-1.29.0-purple)](https://modelcontextprotocol.io/)
 
 ## Overview
 
@@ -77,6 +78,8 @@
 | **Testing** | Vitest |
 | **CLI Framework** | Commander.js |
 | **LLM Backends** | Claude CLI, Gemini CLI, Codex CLI, ZAI API |
+| **Protocol** | Model Context Protocol (MCP) |
+| **MCP SDK** | @modelcontextprotocol/sdk v1.29.0 |
 | **Data Source** | Yahoo Finance API |
 | **Storage** | File-based (~/.one4all/) |
 
@@ -99,13 +102,17 @@ one4all/
 │   │   ├── src/lib/agent-adapter-mapping.ts # Provider assignments
 │   │   ├── src/lib/stock-price.ts          # Real-time price fetching
 │   │   └── src/lib/state-handlers/         # State machine handlers
-│   └── observability/       # Logging & monitoring
+│   ├── mcp/                 # MCP server for one4all kernel
+│   │   └── dist/                    # Compiled MCP server (6 tools, 5 resources)
+│   ├── mcp-server/          # Unified MCP server (missions + stock prices)
+│   ├── observability/       # Logging & monitoring
+│   └── shared/              # Shared utilities and types
 ├── domains/
 │   └── investment-war-room/ # Investment analysis domain
 │       ├── agents/          # 17 analyst cards
 │       └── constitution/    # Domain rules
-└── mcp-servers/             # MCP servers for external integrations
-    └── stock-price-server/  # Real-time stock data
+└── mcp-servers/             # Standalone MCP servers
+    └── stock-price-server/  # Real-time stock data via Yahoo Finance
 ```
 
 ## Installation
@@ -227,6 +234,73 @@ This data is:
 - Fetched BEFORE prompting LLMs (no hallucinated prices)
 - Passed to all analysts for accurate analysis
 - Stored in mission reports for reference
+
+## MCP Integration
+
+one4all provides full [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) support, enabling LLMs to interact with the system through standardized tools and resources.
+
+### MCP Servers
+
+| Server | Tools | Resources | Description |
+|--------|-------|-----------|-------------|
+| **@one4all/mcp** | 6 | 5 | Full kernel integration (missions, evidence, debates) |
+| **@one4all/mcp-server** | 8 | 5 | Unified server (missions + stock prices) |
+| **stock-price-server** | 2 | 0 | Standalone stock price data |
+
+### Available Tools
+
+**Mission Management:**
+- `create_mission` - Create new analysis missions
+- `get_mission_status` - Get mission state and metadata
+- `transition_mission` - Advance mission through state machine
+- `list_missions` - List/filter missions
+
+**Analysis:**
+- `get_evidence_pack` - Retrieve evidence for a mission
+- `get_debate_summary` - Get structured debate results
+
+**Stock Prices:**
+- `get_stock_price` - Get current stock price with metrics
+- `get_multiple_prices` - Get prices for multiple tickers
+
+### Available Resources
+
+- `mission://` - Mission data and metadata
+- `report://` - Formatted analysis reports
+- `journal://` - Journal entries (thesis, fair value, breakers)
+- `constitution://` - Domain constitution rules
+- `agents://` - Agent configurations
+
+### Using MCP Inspector
+
+```bash
+# Install MCP Inspector
+npm install -g @modelcontextprotocol/inspector
+
+# Test the one4all MCP server
+npx @modelcontextprotocol/inspector node packages/mcp/dist/index.js
+```
+
+### Claude Desktop Configuration
+
+Add to your Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "one4all": {
+      "command": "node",
+      "args": ["/absolute/path/to/one4all/packages/mcp/dist/index.js"]
+    },
+    "stock-price": {
+      "command": "node",
+      "args": ["/absolute/path/to/one4all/mcp-servers/stock-price-server/index.js"]
+    }
+  }
+}
+```
+
+**See [docs/mcp.md](docs/mcp.md) for complete MCP documentation.**
 
 ## CLI Management Commands
 
