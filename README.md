@@ -1,5 +1,7 @@
 # one4all — AI Company Simulation System
 
+![banner](docs/assets/banner.png)
+
 > A sophisticated multi-agent system orchestrating AI specialists through structured debate, evidence validation, and decision governance.
 
 [![Tests](https://img.shields.io/badge/tests-967%20passing-brightgreen)](https://github.com/dasimoa/one4all)
