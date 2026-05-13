@@ -89,19 +89,41 @@ export function createMissionCommands(): Command {
   // Start mission
   cmd
     .command('run')
-    .description('Start a mission')
+    .description('Start a mission and execute through state machine')
     .requiredOption('-i, --id <missionId>', 'Mission ID')
+    .option('-w, --wait', 'Wait for mission completion (including human gates)')
     .action(async (options) => {
-      const spinner = ora('Starting mission...').start();
+      const spinner = ora('Executing mission...').start();
 
       try {
         const client = getKernelClient();
         const result = await client.startMission(options.id);
 
         if (result.success) {
-          spinner.succeed('Mission started');
+          spinner.succeed('Mission execution updated');
           if (result.new_state) {
-            kv('New State', formatState(result.new_state));
+            kv('Final State', formatState(result.new_state));
+          }
+
+          // If reached terminal or waiting state, show summary
+          if (result.new_state === 'JOURNALED' || result.new_state === 'FAILED') {
+            // Load mission to show details
+            const status = await client.getMissionStatus(options.id);
+            if (status && (status as any).decision) {
+              const decision = (status as any).decision;
+              header('Investment Decision');
+              kv('Decision State', chalk.bold(decision.decision_state));
+              kv('Fair Value', chalk.cyan(`$${decision.fair_value_conservative}`));
+              kv('Price to Watch', chalk.yellow(`$${decision.price_to_watch}`));
+              console.log('');
+              console.log(chalk.gray('Thesis Breakers:'));
+              for (const breaker of decision.thesis_breakers) {
+                console.log(`  - ${chalk.red(breaker)}`);
+              }
+            }
+          } else if (result.requires_human_input) {
+            warning('Mission requires human input');
+            info(`Run: one4all mission status -i ${options.id}`);
           }
         } else {
           spinner.fail('Failed to start mission');

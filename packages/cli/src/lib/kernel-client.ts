@@ -18,6 +18,7 @@ import { MissionState } from '@one4all/kernel';
 import { getHealthMonitor } from '@one4all/observability';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { getMissionStorage, type StoredMission } from './mission-storage.js';
+import { createMissionExecutor, type ExecutionResult } from './mission-executor.js';
 
 // === Mission Service ===
 
@@ -113,11 +114,22 @@ export class KernelClient {
   private journalData: Map<string, JournalEntry> = new Map();
   private defaultCLIAdapter: CLIAdapterType = 'gemini-cli'; // Default CLI adapter
   private storage = getMissionStorage();
+  private executor?: ReturnType<typeof createMissionExecutor>;
 
   constructor(defaultCLIAdapter?: CLIAdapterType) {
     if (defaultCLIAdapter) {
       this.defaultCLIAdapter = defaultCLIAdapter;
     }
+    // Lazy-create executor when needed
+  }
+
+  private getExecutor() {
+    if (!this.executor) {
+      this.executor = createMissionExecutor({
+        cliAdapter: this.defaultCLIAdapter,
+      });
+    }
+    return this.executor;
   }
 
   /**
@@ -162,22 +174,26 @@ export class KernelClient {
   }
 
   /**
-   * Start a mission
+   * Start a mission - now executes the full pipeline
    */
   async startMission(missionId: string): Promise<TransitionResult> {
-    const mission = await this.storage.load(missionId);
-    if (!mission) {
-      return { success: false, error: 'Mission not found' };
+    const executor = this.getExecutor();
+    const result = await executor.execute(missionId);
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || 'Mission execution failed',
+      };
     }
 
-    // Transition to PLANNING
-    mission.state = 'PLANNING';
-    mission.updated_at = new Date().toISOString();
-    await this.storage.save(mission);
-
+    // If mission reached a terminal or waiting state, return success
     return {
       success: true,
-      new_state: MissionState.PLANNING,
+      new_state: result.finalState || MissionState.PLANNING,
+      requires_human_input: result.finalState === MissionState.HUMAN_REVIEW_GATE_1 ||
+                            result.finalState === MissionState.HUMAN_REVIEW_GATE_2 ||
+                            result.finalState === MissionState.HUMAN_REVIEW_GATE_3,
     };
   }
 

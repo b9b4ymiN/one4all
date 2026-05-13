@@ -2,7 +2,7 @@
   "name": "@one4all/cli",
   "version": "0.1.0",
   "bin": {
-    "oneman": "./dist/index.js"
+    "one4all": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

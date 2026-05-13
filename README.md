@@ -8,14 +8,15 @@
 
 ## Overview
 
-**one4all** simulates a "company" with AI agents as employees, featuring a central kernel that orchestrates missions, enforces constitution rules, manages structured debate, and maintains decision journals. Unlike simple multi-model routers, one4all provides:
+**one4all** simulates a "company" with AI agents as employees, featuring a central kernel that orchestrates missions, enforces constitution rules, manages structured debate, and maintains decision journals. The system supports multiple LLM backends through CLI tools and API adapters.
 
 - **Company Kernel** — State machine orchestrator with 13 mission states
 - **Specialist Agents** — Domain experts with unique personas and skills
 - **Evidence Governance** — Source tiering, scoring, and validation
 - **Structured Debate** — Multi-round argumentation with constitution enforcement
 - **Decision Journaling** — Persistent audit trail with thesis breakers
-- **MCP Interface** — Model Context Protocol server for external integrations
+- **Multi-CLI Support** — Gemini CLI, Claude CLI, ZAI API with automatic fallback
+- **Real-Time Data** — Yahoo Finance integration for live stock prices
 
 ## Philosophy
 
@@ -25,6 +26,7 @@
 - **Agents** are employees with roles, not model wrappers
 - **Models** are interchangeable thinking engines
 - **Domains** are pluggable business contexts
+- **CLI First** — Works with your installed CLI tools
 
 ## Architecture
 
@@ -46,7 +48,7 @@
 │                    Adapter Layer                             │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
 │  │  Claude  │  │  Gemini  │  │    ZAI   │  │ Fallback │   │
-│  │  Adapter │  │  Adapter │  │  Adapter │  │ Manager  │   │
+│  │    CLI   │  │    CLI   │  │   API    │  │ Manager  │   │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -55,7 +57,7 @@
 │                      Domains                                  │
 │  ┌──────────────────────┐  ┌──────────────────────┐        │
 │  │ Investment War Room  │  │   Research Studio    │        │
-│  │  - 12 analysts       │  │  - 6 researchers     │        │
+│  │  - 17 analysts       │  │  - 6 researchers     │        │
 │  │  - Stock analysis    │  │  - Literature review │        │
 │  └──────────────────────┘  └──────────────────────┘        │
 └─────────────────────────────────────────────────────────────┘
@@ -70,8 +72,8 @@
 | **Package Manager** | pnpm 8+ |
 | **Testing** | Vitest |
 | **CLI Framework** | Commander.js |
-| **MCP Server** | @modelcontextprotocol/sdk |
-| **Validation** | Zod |
+| **LLM Backends** | Gemini CLI, Claude CLI, ZAI API |
+| **Data Source** | Yahoo Finance API |
 
 ## Project Structure
 
@@ -79,32 +81,26 @@
 one4all/
 ├── packages/
 │   ├── kernel/              # Company Kernel (core logic)
-│   │   ├── src/
-│   │   │   ├── state-machine/       # Mission state machine
-│   │   │   ├── constitution-enforcer/ # Rule enforcement
-│   │   │   ├── debate-controller/    # Structured debate
-│   │   │   ├── evidence-controller/  # Evidence management
-│   │   │   ├── synthesis/            # Consensus engine
-│   │   │   ├── report/               # Report generation
-│   │   │   ├── parallel-execution/   # Concurrent agents
-│   │   │   └── integration/          # Workflow orchestration
-│   │   └── tests/
+│   │   ├── src/state-machine/       # Mission state machine
+│   │   ├── src/constitution/        # Rule enforcement
+│   │   ├── src/debate/              # Structured debate
+│   │   └── src/evidence/            # Evidence management
 │   ├── adapters/            # AI model adapters
-│   │   ├── src/claude/       # Anthropic Claude
-│   │   ├── src/zai/          # OpenAI-compatible
-│   │   └── src/fallback/     # Circuit breaker pattern
+│   │   ├── src/cli-adapters/        # CLI tool wrappers
+│   │   ├── src/zai/                # ZAI API adapter
+│   │   └── src/fallback/           # Circuit breaker pattern
 │   ├── cli/                 # Command-line interface
-│   ├── observability/       # Logging & monitoring
-│   └── mcp/                 # MCP server
+│   │   ├── src/lib/adapter-factory.ts     # Unified adapter factory
+│   │   ├── src/lib/agent-adapter-mapping.ts # Provider assignments
+│   │   ├── src/lib/stock-price.ts          # Real-time price fetching
+│   │   └── src/lib/state-handlers/         # State machine handlers
+│   └── observability/       # Logging & monitoring
 ├── domains/
-│   ├── investment-war-room/ # Investment analysis domain
-│   │   ├── agents/          # 12 analyst cards
-│   │   ├── constitution/    # Domain rules
-│   │   └── missions/        # Mission storage
-│   └── research-studio/     # Academic research domain
-│       ├── agents/          # 6 researcher cards
-│       └── constitution/    # Research rules
-└── tests/integration/       # Cross-package tests
+│   └── investment-war-room/ # Investment analysis domain
+│       ├── agents/          # 17 analyst cards
+│       └── constitution/    # Domain rules
+└── mcp-servers/             # MCP servers for external integrations
+    └── stock-price-server/  # Real-time stock data
 ```
 
 ## Installation
@@ -124,6 +120,46 @@ pnpm build
 pnpm test
 ```
 
+## Configuration
+
+### 1. CLI Tools Setup
+
+Install and authenticate the CLI tools you want to use:
+
+```bash
+# Gemini CLI (optional but recommended)
+npm install -g @google/gemini-cli
+gemini auth login
+
+# Claude CLI (optional but recommended)
+npm install -g @anthropic-ai/claude-code
+claude auth login
+```
+
+### 2. ZAI API Setup
+
+Create a `.env` file in the project root:
+
+```bash
+# one4all/.env
+ZAI_API_KEY=your_api_key_here
+```
+
+### 3. Agent-to-Provider Mapping
+
+Agents are distributed across available providers:
+
+| Provider | Agents | Purpose |
+|----------|--------|---------|
+| **gemini-cli** | 6 | Fast research, consensus, portfolio allocation |
+| **zai-api** | 6 | Risk analysis, devil's advocate, quality checks |
+| **claude-cli** | 4 | DCF valuation, synthesis, complex reasoning |
+
+**Full mapping:**
+- `claude-cli`: damodaran-valuation, cio-synthesizer, greenwald-evasion, michael-burry
+- `gemini-cli`: researcher-set, consensus-analyst, kessler-moat, allocator-steward, leveraged-franchise, portfolio-allocator, portfolio-manager
+- `zai-api`: klarman-downside, forensic-accountant, devil-advocate, downside-protection, klamran-quality, seth-klarman
+
 ## Quick Start
 
 ```bash
@@ -134,14 +170,14 @@ one4all kernel status
 one4all mission create \
   --domain investment-war-room \
   --type stock_analysis \
-  --ticker AAPL \
+  --ticker NVDA \
   --description "Comprehensive valuation analysis"
 
-# Run a mission
-one4all mission run <mission-id>
+# Run a mission (uses multi-CLI setup automatically)
+one4all mission run -i <mission-id>
 
 # View results
-one4all report view <mission-id>
+one4all report view -i <mission-id>
 
 # Browse journal
 one4all journal list
@@ -159,47 +195,51 @@ FAILED ←─────┴──────── CROSS_QA ←─── DEBAT
                  DECIDED → JOURNALED
 ```
 
-## Usage Examples
+## Real-Time Data Integration
 
-### Investment Analysis
+The system automatically fetches real-time stock prices from Yahoo Finance:
 
-```typescript
-import { InvestmentWarRoom, createInvestmentWarRoom } from '@one4all/kernel';
-
-const warRoom = createInvestmentWarRoom({
-  domain: 'investment-war-room',
-  participants: [
-    'damodaran-valuation',
-    'downside-protection',
-    'leveraged-franchise',
-  ],
-  evidence_sources: ['sec', 'earnings-transcripts'],
-  debate_config: {
-    max_rounds: 3,
-    convergence_threshold: 30,
-  },
-  report_format: 'markdown',
-});
-
-const result = await warRoom.executeAnalysis(mission);
-console.log(result.report?.decision);
+```
+[RESEARCHING] Current price: $220.78 (Yahoo Finance)
+[RESEARCHING] 52-Week High: $223.75
+[RESEARCHING] 52-Week Low: $124.47
 ```
 
-### MCP Server
+This data is:
+- Fetched BEFORE prompting LLMs (no hallucinated prices)
+- Passed to all analysts for accurate analysis
+- Stored in mission reports for reference
+
+## Usage Examples
+
+### Investment Analysis with Multi-CLI
 
 ```bash
-# Start MCP server for Claude Desktop
-one4all mcp start
+# Create and run in one command
+one4all mission create \
+  --domain "Analyze AAPL stock" \
+  --type stock_analysis \
+  --ticker AAPL \
+  --description "Should I buy at current price?" \
+  --run
 
-# In Claude Desktop settings.json:
-{
-  "mcpServers": {
-    "one4all": {
-      "command": "node",
-      "args": ["/path/to/one4all/packages/mcp/dist/index.js"]
-    }
-  }
-}
+# The system will:
+# 1. Fetch real-time AAPL price from Yahoo Finance
+# 2. Run researcher-set with gemini-cli
+# 3. Run damodaran-valuation with claude-cli
+# 4. Run klarman-downside with zai-api (fallback to gemini-cli if API fails)
+# 5. Run portfolio-allocator with gemini-cli
+# 6. Synthesize with cio-synthesizer using claude-cli
+```
+
+### Custom Provider Selection
+
+```typescript
+import { createUnifiedAdapter } from '@one4all/cli';
+
+// Use specific CLI for an agent
+const adapter = createUnifiedAdapter('claude-cli');
+const result = await adapter.run(prompt);
 ```
 
 ## Domains
@@ -207,37 +247,24 @@ one4all mcp start
 ### Investment War Room
 **Purpose:** Evidence-based investment analysis
 
-**Agents:**
+**Agents (17 total):**
 - `damodaran-valuation` — DCF valuation specialist
-- `downside-protection` — Risk analyst
-- `leveraged-franchise` — Quality assessor
-- `allocator-steward` — Portfolio fit
+- `klarman-downside` — Risk analyst
+- `portfolio-allocator` — Position sizing
 - `seth-klarman` — Margin of safety
 - `michael-burry` — Downside scenarios
-- And 6 more specialists
+- And 12 more specialists
+
+**Provider Distribution:**
+- **Claude CLI** (4): Complex valuation, synthesis
+- **ZAI API** (6): Risk analysis, devil's advocate
+- **Gemini CLI** (6): Research, consensus, allocation
 
 **Constitution Rules:**
 - Tier 1 sources required for material claims
-- No buy/sell recommendations (analysts provide valuation only)
+- Real-time market data from Yahoo Finance
 - Margin of safety analysis mandatory
 - Thesis breakers must be explicit
-
-### Research Studio
-**Purpose:** Academic research synthesis
-
-**Agents:**
-- `literature-reviewer` — Systematic review
-- `methodologist` — Study design evaluation
-- `statistician` — Power analysis and validity
-- `peer-reviewer` — Critical appraisal
-- `synthesizer` — Evidence integration
-- `hypothesis-tester` — Hypothesis validation
-
-**Constitution Rules:**
-- Peer-reviewed sources preferred
-- Claim-warrant-impact argumentation
-- Bayesian belief updating
-- Methodology transparency required
 
 ## Test Coverage
 
@@ -252,7 +279,6 @@ one4all mcp start
 ├── Adapters:                 65 tests
 ├── CLI:                     195 tests
 ├── Integration:             16 tests
-├── MCP Server:               34 tests
 └── Observability:            17 tests
 ```
 
@@ -264,25 +290,18 @@ one4all mcp start
 # domains/investment-war-room/agents/damodaran-valuation.yaml
 id: damodaran-valuation
 name: "Damodaran Valuation Partner"
-version: "1.0"
 domain: investment-war-room
 
 role: valuation_analyst
-description: "DCF-first valuation analyst. Story must become numbers."
+description: "DCF-first valuation analyst"
 
-model:
-  primary:
-    provider: claude
-    model: claude-opus-4-5
-  fallback:
-    - provider: zai
-      model: zai-default
+# Provider assignment (via agent-adapter-mapping.ts)
+# Uses claude-cli for high-quality reasoning
+# Falls back to gemini-cli if unavailable
 
 output_contract:
   mandatory_fields:
     - fair_value_conservative
-    - fair_value_base
-    - implied_growth_at_market_price
     - conviction_level
   forbidden_content:
     - buy_recommendation

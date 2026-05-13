@@ -75,9 +75,24 @@ export class ZAIAdapter implements Adapter {
   };
 
   constructor(config: ZAIAdapterConfig = {}) {
+    // Debug: Log environment variable availability
+    const hasZaiKey = !!process.env.ZAI_API_KEY;
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    const passedKey = !!config.apiKey;
+
+    if (hasZaiKey) {
+      console.error(`[ZAI_ADAPTER] Using ZAI_API_KEY from env: ***${process.env.ZAI_API_KEY?.slice(-4)}`);
+    } else if (hasOpenAIKey) {
+      console.error(`[ZAI_ADAPTER] Using OPENAI_API_KEY from env: ***${process.env.OPENAI_API_KEY?.slice(-4)}`);
+    } else if (passedKey) {
+      console.error(`[ZAI_ADAPTER] Using passed API key: ***${config.apiKey?.slice(-4)}`);
+    } else {
+      console.error(`[ZAI_ADAPTER] No API key found - ZAI_API_KEY: ${hasZaiKey}, OPENAI_API_KEY: ${hasOpenAIKey}, passedKey: ${passedKey}`);
+    }
+
     this.config = {
-      apiKey: config.apiKey ?? process.env.OPENAI_API_KEY ?? '',
-      baseURL: config.baseURL ?? 'https://api.openai.com/v1',
+      apiKey: config.apiKey ?? process.env.ZAI_API_KEY ?? process.env.OPENAI_API_KEY ?? '',
+      baseURL: config.baseURL ?? 'https://api.zyphra.ai/v1',
       model: config.model ?? DEFAULT_MODEL,
       maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
       retryDelay: config.retryDelay ?? DEFAULT_RETRY_DELAY,
@@ -88,7 +103,7 @@ export class ZAIAdapter implements Adapter {
     };
 
     if (!this.config.apiKey) {
-      throw new Error('ZAI API key is required. Set OPENAI_API_KEY environment variable or pass apiKey in config.');
+      throw new Error('ZAI API key is required. Set ZAI_API_KEY or OPENAI_API_KEY environment variable, or pass apiKey in config.');
     }
 
     this.client = new OpenAI({

@@ -5,9 +5,10 @@
  */
 
 import { mkdir, readFile, writeFile, readdir, unlink } from 'fs/promises';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import type { MissionStateData } from '@one4all/kernel/src/state-machine/types';
 
 export interface StoredMission {
   mission_id: string;
@@ -25,6 +26,7 @@ export interface StoredMission {
     owner_assumptions?: Record<string, unknown>;
     constraints?: Record<string, unknown>;
   };
+  state_data?: MissionStateData;
 }
 
 export class MissionStorage {
@@ -91,6 +93,17 @@ export class MissionStorage {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  loadSync(missionId: string): StoredMission | null {
+    const filePath = join(this.storagePath, `${missionId}.json`);
+
+    try {
+      const data = readFileSync(filePath, 'utf-8');
+      return JSON.parse(data) as StoredMission;
+    } catch {
+      return null;
     }
   }
 

@@ -39,7 +39,8 @@ export class GeminiCLIAdapter {
     const startTime = Date.now();
 
     try {
-      const response = await this.executeGeminiCLI(prompt);
+      const timeout = config.timeout || this.config.timeout;
+      const response = await this.executeGeminiCLI(prompt, timeout);
 
       return {
         success: true,
@@ -69,7 +70,7 @@ export class GeminiCLIAdapter {
     }
   }
 
-  private async executeGeminiCLI(prompt: string): Promise<string> {
+  private async executeGeminiCLI(prompt: string, timeout?: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const args = ['-p', prompt, '--output-format', 'json'];
       const process = spawn(this.config.geminiPath, args);
@@ -85,13 +86,14 @@ export class GeminiCLIAdapter {
         stderr += data.toString();
       });
 
-      const timeout = setTimeout(() => {
+      const actualTimeout = timeout || this.config.timeout;
+      const timeoutId = setTimeout(() => {
         process.kill();
-        reject(new Error(`Gemini CLI timeout after ${this.config.timeout}ms`));
-      }, this.config.timeout);
+        reject(new Error(`Gemini CLI timeout after ${actualTimeout}ms`));
+      }, actualTimeout);
 
       process.on('close', (code) => {
-        clearTimeout(timeout);
+        clearTimeout(timeoutId);
 
         if (code !== 0) {
           reject(new Error(`Gemini CLI exited with code ${code}: ${stderr}`));
