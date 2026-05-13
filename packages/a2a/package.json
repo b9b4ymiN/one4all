@@ -1,0 +1,39 @@
+{
+  "name": "@one4all/a2a",
+  "version": "0.1.0",
+  "description": "Agent-to-Agent (A2A) Compatible Runtime for one4all",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:unit": "vitest --run tests/unit",
+    "test:integration": "vitest --run tests/integration",
+    "test:chaos": "vitest --run tests/chaos-engineering",
+    "test:behavioral": "vitest --run tests/behavioral-validation",
+    "test:all": "vitest --run --coverage",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.4",
+    "neverthrow": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.55.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.js"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@one4all/example-external-agent",
+  "version": "1.0.0",
+  "description": "Example external agent demonstrating A2A protocol implementation",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsc && node dist/server.js",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "a2a",
+    "agent",
+    "one4all",
+    "example"
+  ],
+  "author": "one4all",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

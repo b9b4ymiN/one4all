@@ -1,0 +1,76 @@
+id: "example-external-agent"
+name: "Example External Agent"
+version: "1.0.0"
+domain: "example"
+active: true
+role: "analyst"
+description: "Example external agent demonstrating A2A protocol implementation
+tags:
+  - "example"
+  - "external"
+  - "demo"
+
+capabilities:
+  input_types:
+    - "request"
+    - "challenge"
+  output_types:
+    - "response"
+    - "evidence"
+  skills: []
+  tools_required: []
+  tools_provided: []
+
+output_contract:
+  mandatory_fields:
+    - "result"
+    - "confidence"
+  forbidden_content:
+    - "error"
+    - "exception"
+  validation_rules:
+    - "confidence must be between 0 and 1"
+    - "result must be a string"
+
+performance:
+  timeout_seconds: 30
+  max_tokens: 4096
+  max_retries: 3
+
+model:
+  provider: "example"
+  model: "example-model"
+  fallback_providers:
+    - provider: "example"
+      model: "fallback-model"
+
+a2a_config:
+  endpoint: "http://localhost:3000"
+  protocol: "http"
+  authentication:
+    type: "api_key"
+    credentials_ref: "example-api-key"
+  rate_limits:
+    max_requests_per_minute: 100
+    max_concurrent_requests: 10
+  health_check:
+    enabled: true
+    interval_seconds: 60
+    endpoint: "http://localhost:3000/health"
+    timeout_seconds: 10
+  behavioral_protocol:
+    implements_challenge_response: true
+    implements_evidence_submission: true
+    implements_debate_protocol: false
+    supported_interaction_modes:
+      - "request_response"
+      - "challenge_response"
+      - "collaborative"
+
+trust:
+  trust_level: "unverified"
+  verification_status: "pending"
+  verification_method: "self_attested"
+
+created_at: "2026-05-13T20:00:00Z"
+owner: "example"

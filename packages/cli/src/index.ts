@@ -67,6 +67,7 @@ import {
   createCostCommands,
 } from './commands/observability.js';
 import { createObserveCommands } from './commands/observe.js';
+import { createA2ACommands } from './commands/a2a/index.js';
 
 const program = new Command();
 
@@ -96,6 +97,7 @@ ${chalk.dim('Report bugs:')} https://github.com/yourusername/one4all/issues
 program.addCommand(createMissionCommands());
 program.addCommand(createAgentCommands());
 program.addCommand(createAgentsManageCommands());
+program.addCommand(createA2ACommands());
 program.addCommand(createTeamCommands());
 program.addCommand(createJournalCommands());
 program.addCommand(createConstitutionCommands());

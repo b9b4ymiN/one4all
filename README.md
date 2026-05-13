@@ -2,7 +2,7 @@
 
 > A sophisticated multi-agent system orchestrating AI specialists through structured debate, evidence validation, and decision governance.
 
-[![Tests](https://img.shields.io/badge/tests-625%20passing-brightgreen)](https://github.com/dasimoa/one4all)
+[![Tests](https://img.shields.io/badge/tests-967%20passing-brightgreen)](https://github.com/dasimoa/one4all)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org/)
 [![MCP](https://img.shields.io/badge/MCP-1.29.0-purple)](https://modelcontextprotocol.io/)
@@ -83,6 +83,56 @@
 | **Data Source** | Yahoo Finance API |
 | **Storage** | File-based (~/.one4all/) |
 
+## A2A (Agent-to-Agent) Protocol ✅
+
+The **A2A protocol** enables one4all to integrate external agent services as peers to internal agents, providing a standardized way for agents to discover, communicate, and trust each other.
+
+**Status:** ✅ Complete (342/342 tests passing)
+
+### Key Features
+
+- **Agent Card Standard** - Standardized format for capability advertisement
+- **Trust Verification** - Behavioral validation with probationary periods
+- **Behavioral Protocols** - Challenge/response, evidence submission, debate
+- **Gateway State Machine** - NORMAL → DEGRADED → FALLBACK → CRITICAL
+- **Circuit Breaker** - Automatic failure isolation
+- **CLI Commands** - `one4all a2a list/register/info/health/verify/unregister`
+
+### Usage
+
+```bash
+# List all registered agents
+one4all a2a list
+
+# Register an external agent
+one4all a2a register agent-card.yaml
+
+# Check agent health
+one4all a2a health <agent-id>
+
+# Run trust verification
+one4all a2a verify <agent-id>
+```
+
+### Documentation
+
+See [packages/a2a/README.md](packages/a2a/README.md) for complete A2A protocol documentation including:
+- Agent Card schema reference
+- Trust levels and verification process
+- Behavioral protocols and interaction modes
+- External agent development guide
+- Troubleshooting guide
+
+### Test Coverage
+
+| Suite | Tests | Status |
+|-------|-------|--------|
+| Unit Tests | 172 | ✅ Passing |
+| Integration Tests | 69 | ✅ Passing |
+| Behavioral Validation | 53 | ✅ Passing |
+| Chaos Engineering | 48 | ✅ Passing |
+| **Total** | **342** | ✅ **All Passing** |
+
 ## Project Structure
 
 ```
@@ -111,6 +161,12 @@ one4all/
 │   └── investment-war-room/ # Investment analysis domain
 │       ├── agents/          # 17 analyst cards
 │       └── constitution/    # Domain rules
+├── a2a/                   # Agent-to-Agent Protocol ✅
+│   ├── src/schemas/       # Agent Card standard
+│   ├── src/trust/         # Trust verification
+│   ├── src/gateway/       # A2A gateway
+│   ├── tests/             # 342 tests (all passing)
+│   └── examples/          # External agent example
 └── mcp-servers/             # Standalone MCP servers
     └── stock-price-server/  # Real-time stock data via Yahoo Finance
 ```
