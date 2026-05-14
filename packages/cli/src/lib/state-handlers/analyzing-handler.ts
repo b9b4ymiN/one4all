@@ -8,6 +8,9 @@ import { Mission, MissionState } from '@one4all/kernel';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { getAdapterForAgent, getFallbackAdapterForAgent } from '../agent-adapter-mapping.js';
 import { createUnifiedAdapter } from '../adapter-factory.js';
+import { readFile } from 'fs/promises';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 export interface AnalystOutputData {
   agent_id: string;
@@ -16,6 +19,43 @@ export interface AnalystOutputData {
   view?: string;
   what_would_change_my_mind?: string[];
   data_gaps?: string[];
+}
+
+/**
+ * Get the directory path of the current module
+ */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * Load persona content for a specific agent
+ * Returns persona content or null if not found
+ */
+async function loadPersonaForAgent(agentId: string): Promise<string | null> {
+  try {
+    // Map agent IDs to persona filenames (handling naming differences)
+    const personaMap: Record<string, string> = {
+      'damodaran-valuation': 'damodaran',
+      'seth-klarman': 'klarman',
+      'devil-advocate': 'devil-advocate',
+    };
+
+    const filename = personaMap[agentId] || agentId;
+    // Navigate from packages/cli/src/lib/state-handlers/ to domains/investment-war-room/personas/
+    const personaPath = join(__dirname, '../../../../domains/investment-war-room/personas', `${filename}.md`);
+    const personaContent = await readFile(personaPath, 'utf-8');
+
+    // Extract just the persona content (after the frontmatter)
+    const frontmatterEnd = personaContent.indexOf('---', 3); // Skip first ---
+    if (frontmatterEnd !== -1) {
+      return personaContent.substring(frontmatterEnd + 3).trim();
+    }
+
+    return personaContent;
+  } catch (error) {
+    // Persona file not found, return null to trigger fallback
+    return null;
+  }
 }
 
 /**
@@ -97,7 +137,7 @@ export async function handleAnalyzingState(
   for (const analyst of analysts.length > 0 ? analysts : ['damodaran-valuation']) {
     console.log(`  [ANALYZING] Running ${analyst}...`);
 
-    const prompt = buildAnalystPrompt(analyst, ticker, evidence);
+    const prompt = await buildAnalystPrompt(analyst, ticker, evidence);
     const result = await runAnalystWithRetry(analyst, prompt, 2);
 
     if (result.success && result.output) {
@@ -127,9 +167,12 @@ export async function handleAnalyzingState(
 }
 
 /**
- * Build analyst prompt
+ * Build analyst prompt with persona content
  */
-function buildAnalystPrompt(analyst: string, ticker: string, evidence: any): string {
+async function buildAnalystPrompt(analyst: string, ticker: string, evidence: any): Promise<string> {
+  // Load persona content from markdown file
+  const personaContent = await loadPersonaForAgent(analyst);
+
   // Build market data section
   const marketData = evidence?.current_price
     ? `CURRENT MARKET DATA:
@@ -152,6 +195,25 @@ function buildAnalystPrompt(analyst: string, ticker: string, evidence: any): str
     ? `Business Model: ${evidence.business_context.business_model}`
     : '';
 
+  // Use persona content if available, otherwise fall back to generic prompt
+  if (personaContent) {
+    // Use the full persona content from markdown file
+    return `You are analyzing ${ticker}.
+
+${personaContent}
+
+## Current Analysis Context:
+
+${marketData}
+
+${evidenceText}
+
+${businessText}
+
+Provide your analysis in the appropriate JSON format based on your persona's output requirements above.`;
+  }
+
+  // Fallback to generic prompt if persona not found
   switch (analyst) {
     case 'damodaran-valuation':
       return `You are Prof. Damodaran, performing a DCF valuation for ${ticker}.
