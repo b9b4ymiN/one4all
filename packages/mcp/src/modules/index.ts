@@ -5,6 +5,7 @@
  */
 
 export * from './agent-handler.js';
+export * from './brainstorm-handler.js';
 export * from './domain-handler.js';
 export * from './mission-enhanced.js';
 export * from './constitution-handler.js';
