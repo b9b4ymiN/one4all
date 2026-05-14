@@ -9,6 +9,8 @@ export default defineConfig({
       'packages/*/tests/**/*.test.ts',
       'packages/*/src/**/*.test.ts',
       'packages/*/src/**/*.real.test.ts',
+      'apps/*/tests/**/*.test.ts',
+      'apps/*/src/**/*.test.ts',
     ],
     testTimeout: 60000, // 60 second timeout for real API tests
     setupFiles: [],
@@ -39,6 +41,7 @@ export default defineConfig({
       '@one4all/observability': '/home/dasimoa/one4all/packages/observability/src',
       '@one4all/adapters': '/home/dasimoa/one4all/packages/adapters/src',
       '@one4all/cli': '/home/dasimoa/one4all/packages/cli/src',
+      '@one4all/a2a': '/home/dasimoa/one4all/packages/a2a/src',
     },
   },
 });

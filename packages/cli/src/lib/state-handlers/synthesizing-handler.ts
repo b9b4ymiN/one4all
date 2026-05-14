@@ -9,6 +9,7 @@ import type { Decision, SMDecisionState, SMFollowUpEvent } from '@one4all/kernel
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { getAdapterForAgent } from '../agent-adapter-mapping.js';
 import { createUnifiedAdapter } from '../adapter-factory.js';
+import { getFairValueAnalysts, isFairValueAnalyst } from '@one4all/kernel';
 
 // Type aliases for compatibility
 type DecisionState = SMDecisionState;
@@ -89,11 +90,30 @@ export async function handleSynthesizingState(
 
 /**
  * Build CIO synthesizer prompt
+ *
+ * IMPORTANT: Only include fair_value analysts in the fair_value averaging.
+ * The portfolio-allocator provides position_size (percentage), not fair_value (dollars).
  */
 function buildCIOPrompt(ticker: string, evidence: any, analysts: any[]): string {
-  const analystViews = analysts.map((a: any) =>
-    `- ${a.agent_id}: fair_value=${a.fair_value}, conviction=${a.conviction_level}, view="${a.view?.substring(0, 100)}..."`
+  // Separate fair_value analysts from other analysts
+  const fairValueAnalysts = analysts.filter((a: any) =>
+    a.fair_value !== undefined && isFairValueAnalyst(a.agent_id as any)
+  );
+
+  const otherAnalysts = analysts.filter((a: any) =>
+    !isFairValueAnalyst(a.agent_id as any)
+  );
+
+  const fairValueViews = fairValueAnalysts.map((a: any) =>
+    `- ${a.agent_id}: fair_value=$${a.fair_value}, conviction=${a.conviction_level}, view="${a.view?.substring(0, 80)}..."`
   ).join('\n');
+
+  const otherViews = otherAnalysts.map((a: any) => {
+    const details = a.fair_value !== undefined
+      ? `position_size=${a.fair_value}%`
+      : `conviction=${a.conviction_level}`;
+    return `- ${a.agent_id}: ${details}, view="${a.view?.substring(0, 80)}..."`;
+  }).join('\n');
 
   const evidenceText = evidence?.financial_data
     ? `Financial Data:\n- Revenue: ${evidence.financial_data.revenue || 'UNKNOWN'}\n- Net Income: ${evidence.financial_data.net_income || 'UNKNOWN'}\n- EPS: ${evidence.financial_data.eps || 'UNKNOWN'}\n\nEvidence Score: ${evidence.evidence_score || 30}/100`
@@ -103,14 +123,17 @@ function buildCIOPrompt(ticker: string, evidence: any, analysts: any[]): string 
 
 ${evidenceText}
 
-ANALYST VIEWS:
-${analystViews}
+FAIR VALUE ANALYSTS (intrinsic value estimates in dollars):
+${fairValueViews || 'No fair value estimates available'}
+
+OTHER ANALYSTS (portfolio sizing, risk assessment):
+${otherViews || 'No other analyst views available'}
 
 Your task: Provide a clear investment decision in JSON format:
 
 {
   "decision_state": string (one of: "REJECT", "WATCH", "RESEARCH_MORE", "WAIT_FOR_PRICE", "STARTER_POSITION", "CORE_CANDIDATE"),
-  "fair_value_conservative": number (conservative per-share estimate),
+  "fair_value_conservative": number (conservative per-share estimate in dollars, based ONLY on fair_value analysts above),
   "price_to_watch": number (price threshold for action),
   "thesis_breakers": array of strings (events that would invalidate the thesis),
   "follow_up_events": array of objects with "event", "expected_date", and "watch_for" keys,
@@ -125,6 +148,8 @@ DECISION STATE GUIDANCE:
 - WAIT_FOR_PRICE: Good company but price too high
 - STARTER_POSITION: Good opportunity for small position
 - CORE_CANDIDATE: High conviction, can be large holding
+
+CRITICAL: Your fair_value_conservative must be based ONLY on the fair_value analysts (damodaran-valuation, klarman-downside, greenwald-evasion). Do NOT average in position_size percentages.
 
 Be decisive. Use current price ~${ticker === 'AAPL' ? '180' : '100'} as reference if not provided.`;
 }
@@ -169,12 +194,18 @@ function parseCIOOutput(content: string, ticker: string): SynthesisData {
 
 /**
  * Create fallback decision
+ *
+ * IMPORTANT: Only average fair_value from actual fair_value analysts.
+ * Do NOT include position_size percentages from portfolio-allocator.
  */
 function createFallbackDecision(ticker: string, analysts: any[]): SynthesisData {
-  const avgFairValue = analysts.length > 0
-    ? analysts
-        .filter((a: any) => a.fair_value)
-        .reduce((sum: number, a: any) => sum + (a.fair_value || 0), 0) / analysts.filter((a: any) => a.fair_value).length
+  // Filter to only include fair_value analysts
+  const fairValueAnalysts = analysts.filter((a: any) =>
+    a.fair_value !== undefined && isFairValueAnalyst(a.agent_id as any)
+  );
+
+  const avgFairValue = fairValueAnalysts.length > 0
+    ? fairValueAnalysts.reduce((sum: number, a: any) => sum + (a.fair_value || 0), 0) / fairValueAnalysts.length
     : 100;
 
   const decision: Decision = {
@@ -199,7 +230,7 @@ function createFallbackDecision(ticker: string, analysts: any[]): SynthesisData 
   return {
     agent_id: 'cio-synthesizer',
     decision,
-    consensus: 'Analysts had mixed views',
+    consensus: `Analysts had mixed views (${fairValueAnalysts.length} fair value estimates)`,
     agreement_analysis: {
       high_confidence_points: [],
       disagreement_points: [],

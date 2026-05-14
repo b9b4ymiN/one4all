@@ -1,39 +1,44 @@
 /**
  * DEBATING State Handler
  *
- * Stub handler that auto-proceeds for simple missions
- * In full implementation, this would run debate between disagreeing analysts
+ * Orchestrates structured debate between disagreeing analysts
+ * Feature-flagged via FEATURE_FLAG_DEBATE_MODE environment variable
  */
 
 import { Mission, MissionState } from '@one4all/kernel';
+import { DebateOrchestrator } from '@one4all/kernel/personas/debate';
 
 /**
  * Handle DEBATING state
- * Auto-proceeds to SYNTHESIZING for simple missions
+ * Runs debate rounds if feature flag is enabled, otherwise simple mode
  */
 export async function handleDebatingState(
   mission: Mission
 ): Promise<MissionState> {
   const ticker = mission.state.brief?.ticker || 'UNKNOWN';
+  const debateEnabled = process.env.FEATURE_FLAG_DEBATE_MODE === 'true';
 
-  console.log(`  [DEBATING] Skipping debate phase for ${ticker} (simple analysis mode)`);
+  if (debateEnabled) {
+    console.log(`  [DEBATING] Running debate phase for ${ticker} (feature flag enabled)`);
+  } else {
+    console.log(`  [DEBATING] Simple mode for ${ticker} (set FEATURE_FLAG_DEBATE_MODE=true to enable)`);
+  }
 
-  // Store minimal debate record for state machine validation
-  mission.state.debate_records = {
-    rounds: [
-      {
-        round_number: 1,
-        topic: 'Valuation and risk assessment',
-        unresolved_flags: [],
-      }
-    ],
-    summary: 'Analysis completed without debate (simple mode)',
-  };
+  // Create debate orchestrator and run debate
+  const orchestrator = new DebateOrchestrator();
+  const debateRecord = await orchestrator.runDebate(mission);
 
-  // In full implementation, this would:
-  // 1. Identify key disagreements
-  // 2. Let analysts debate (max 3 rounds)
-  // 3. Flag unresolved issues
+  // Store debate record in mission state
+  mission.state.debate_records = debateRecord;
+
+  // Log results
+  console.log(`  [DEBATING] ${debateRecord.summary}`);
+  if (debateRecord.rounds.length > 0) {
+    const lastRound = debateRecord.rounds[debateRecord.rounds.length - 1];
+    if (lastRound.unresolved_flags.length > 0) {
+      console.log(`  [DEBATING] Unresolved issues: ${lastRound.unresolved_flags.join(', ')}`);
+    }
+  }
 
   return MissionState.SYNTHESIZING;
 }

@@ -94,3 +94,10 @@ export * from './registry';
 
 // Integration Layer
 export * from './integration';
+
+// Python Integration
+export * from './python/types';
+export { PythonDCFClient } from './python/dcf';
+
+// Personas (analyst types and filtering)
+export * from './personas/types';

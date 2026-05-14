@@ -11,6 +11,8 @@ import { createUnifiedAdapter } from '../adapter-factory.js';
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { isFairValueAnalyst, type AnalystId } from '@one4all/kernel';
+import { PythonDCFClient } from '@one4all/kernel/python/dcf.js';
 
 export interface AnalystOutputData {
   agent_id: string;
@@ -72,6 +74,60 @@ async function loadPersonaForAgent(agentId: string): Promise<string | null> {
  */
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Run Python DCF model with type-safe integration
+ */
+async function runDCFModel(ticker: string, evidence: any): Promise<{
+  dcfOutput?: string;
+  fairValue?: number;
+}> {
+  try {
+    const dcfClient = new PythonDCFClient({
+      timeout: 30000, // 30 seconds
+      retryOnTimeout: true,
+      maxRetries: 2,
+    });
+
+    // Extract financial data from evidence
+    const freeCashFlow = evidence?.financial_data?.free_cash_flow ||
+                         evidence?.financial_data?.net_income ||
+                         1000000000; // Default $1B
+
+    const result = await dcfClient.calculateWithFallback(
+      ticker,
+      evidence?.current_price || 100, // Fallback to current price
+      {
+        freeCashFlow,
+        discountRate: 0.10, // 10% WACC
+        terminalGrowthRate: 0.025, // 2.5% terminal growth
+        yearsToProject: 10,
+      }
+    );
+
+    if (result.status === 'success' && result.data) {
+      const dcfOutput = `
+## Python DCF Model Output:
+- Present Value of Forecast FCF: $${(result.data.present_value / 1e6).toFixed(2)}M
+- Terminal Value: $${(result.data.terminal_value / 1e6).toFixed(2)}M
+- Enterprise Value: $${(result.data.enterprise_value / 1e6).toFixed(2)}M
+- Implied Share Price: $${result.data.implied_share_price?.toFixed(2) || 'N/A'}
+- Execution Time: ${result.executionTime}ms
+`;
+
+      return {
+        dcfOutput,
+        fairValue: result.fair_value,
+      };
+    }
+
+    console.log(`  [DCF] Model returned ${result.status}: ${result.error || 'Unknown error'}`);
+    return {};
+  } catch (error) {
+    console.log(`  [DCF] Failed to run model: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return {};
+  }
 }
 
 /**
@@ -182,6 +238,15 @@ async function buildAnalystPrompt(analyst: string, ticker: string, evidence: any
   // Load persona content from markdown file
   const personaContent = await loadPersonaForAgent(analyst);
 
+  // Run DCF model for Damodaran
+  let dcfContext = '';
+  if (analyst === 'damodaran-valuation') {
+    const dcfResult = await runDCFModel(ticker, evidence);
+    if (dcfResult.dcfOutput) {
+      dcfContext = dcfResult.dcfOutput;
+    }
+  }
+
   // Build market data section
   const marketData = evidence?.current_price
     ? `CURRENT MARKET DATA:
@@ -213,6 +278,8 @@ ${personaContent}
 
 ## Current Analysis Context:
 
+${dcfContext}
+
 ${marketData}
 
 ${evidenceText}
@@ -226,6 +293,8 @@ Provide your analysis in the appropriate JSON format based on your persona's out
   switch (analyst) {
     case 'damodaran-valuation':
       return `You are Prof. Damodaran, performing a DCF valuation for ${ticker}.
+
+${dcfContext}
 
 ${marketData}
 
@@ -297,6 +366,10 @@ Consider diversification and risk-adjusted returns.`;
 
 /**
  * Parse analyst output
+ *
+ * IMPORTANT: Only map position_size to fair_value for actual fair_value analysts.
+ * The portfolio-allocator returns position_size as a % (0-15), NOT a dollar fair_value.
+ * This prevents the $5 bug where 5% position was treated as $5 fair value.
  */
 function parseAnalystOutput(agentId: string, content: string): AnalystOutputData {
   try {
@@ -304,9 +377,24 @@ function parseAnalystOutput(agentId: string, content: string): AnalystOutputData
     if (jsonMatch) {
       const data = JSON.parse(jsonMatch[0]);
 
+      // Check if this analyst provides fair_value estimates
+      const providesFairValue = isFairValueAnalyst(agentId as AnalystId);
+
+      // Only use position_size as fallback for fair_value analysts
+      // For portfolio-allocator, keep position_size separate
+      let fairValue: number | undefined = data.fair_value;
+      if (!fairValue && providesFairValue && data.position_size !== undefined) {
+        fairValue = data.position_size;
+      }
+
+      // Validation: warn if fair_value is between 0 and 1 (likely a percentage bug)
+      if (fairValue !== undefined && fairValue > 0 && fairValue < 1) {
+        console.warn(`  [ANALYZING] WARNING: ${agentId} returned fair_value=${fairValue} (< $1). This may be a percentage treated as dollars.`);
+      }
+
       return {
         agent_id: agentId,
-        fair_value: data.fair_value || data.position_size,
+        fair_value: fairValue,
         conviction_level: data.conviction_level || 5,
         view: data.view || data.entry_strategy || 'No view provided',
         what_would_change_my_mind: data.what_would_change_my_mind || [],

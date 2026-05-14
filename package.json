@@ -12,6 +12,7 @@
     "test:real:claude": "TEST_CLAUDE_REAL=1 vitest run --config vitest.config.ts --testNamePattern='claude.*real|Claude.*Real'",
     "test:real:zai": "TEST_ZAI_REAL=1 vitest run --config vitest.config.ts --testNamePattern='zai.*real|ZAI.*Real'",
     "test:real:gemini": "TEST_GEMINI_REAL=1 vitest run --config vitest.config.ts --testNamePattern='gemini.*real|Gemini.*Real'",
+    "test:market": "vitest run --config vitest.config.ts apps/quant/tests/cpall.test.ts",
     "lint": "eslint packages --ext .ts",
     "format": "prettier --write \"**/*.ts\"",
     "clean": "rm -rf node_modules packages/*/node_modules",
