@@ -38,6 +38,15 @@ async function loadPersonaForAgent(agentId: string): Promise<string | null> {
       'damodaran-valuation': 'damodaran',
       'seth-klarman': 'klarman',
       'devil-advocate': 'devil-advocate',
+      'allocator-steward': 'allocator',
+      'consensus-analyst': 'consensus',
+      'downside-protection': 'downside-analyst',
+      'greenwald-evasion': 'greenwald',
+      'kessler-moat': 'kessler',
+      'klamran-quality': 'klamran',
+      'leveraged-franchise': 'leveraged-franchise',
+      'michael-burry': 'burry',
+      'portfolio-manager': 'portfolio-manager',
     };
 
     const filename = personaMap[agentId] || agentId;

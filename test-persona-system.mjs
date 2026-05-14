@@ -15,7 +15,12 @@ console.log('=' .repeat(50));
 // Test 1: Verify persona files exist
 async function testPersonaFilesExist() {
   console.log('\n📂 Test 1: Persona Files Exist');
-  const personas = ['damodaran', 'klarman', 'devil-advocate'];
+  const personas = [
+    'damodaran', 'klarman', 'devil-advocate',
+    'allocator', 'consensus', 'downside-analyst',
+    'greenwald', 'kessler', 'klamran',
+    'leveraged-franchise', 'burry', 'portfolio-manager'
+  ];
   const basePath = join(__dirname, 'domains/investment-war-room/personas');
 
   let passed = 0;
@@ -36,7 +41,12 @@ async function testPersonaFilesExist() {
 // Test 2: Verify persona content structure
 async function testPersonaContentStructure() {
   console.log('\n📝 Test 2: Persona Content Structure');
-  const personas = ['damodaran', 'klarman', 'devil-advocate'];
+  const personas = [
+    'damodaran', 'klarman', 'devil-advocate',
+    'allocator', 'consensus', 'downside-analyst',
+    'greenwald', 'kessler', 'klamran',
+    'leveraged-franchise', 'burry', 'portfolio-manager'
+  ];
   const basePath = join(__dirname, 'domains/investment-war-room/personas');
 
   const requiredSections = [
@@ -181,14 +191,32 @@ function testAgentIdMapping() {
 
   const personaMap = {
     'damodaran-valuation': 'damodaran',
-    'klarman-downside': 'klarman',
+    'seth-klarman': 'klarman',
     'devil-advocate': 'devil-advocate',
+    'allocator-steward': 'allocator',
+    'consensus-analyst': 'consensus',
+    'downside-protection': 'downside-analyst',
+    'greenwald-evasion': 'greenwald',
+    'kessler-moat': 'kessler',
+    'klamran-quality': 'klamran',
+    'leveraged-franchise': 'leveraged-franchise',
+    'michael-burry': 'burry',
+    'portfolio-manager': 'portfolio-manager',
   };
 
   const testCases = [
     { agentId: 'damodaran-valuation', expectedFile: 'damodaran.md' },
-    { agentId: 'klarman-downside', expectedFile: 'klarman.md' },
+    { agentId: 'seth-klarman', expectedFile: 'klarman.md' },
     { agentId: 'devil-advocate', expectedFile: 'devil-advocate.md' },
+    { agentId: 'allocator-steward', expectedFile: 'allocator.md' },
+    { agentId: 'consensus-analyst', expectedFile: 'consensus.md' },
+    { agentId: 'downside-protection', expectedFile: 'downside-analyst.md' },
+    { agentId: 'greenwald-evasion', expectedFile: 'greenwald.md' },
+    { agentId: 'kessler-moat', expectedFile: 'kessler.md' },
+    { agentId: 'klamran-quality', expectedFile: 'klamran.md' },
+    { agentId: 'leveraged-franchise', expectedFile: 'leveraged-franchise.md' },
+    { agentId: 'michael-burry', expectedFile: 'burry.md' },
+    { agentId: 'portfolio-manager', expectedFile: 'portfolio-manager.md' },
   ];
 
   let passed = 0;
@@ -203,6 +231,7 @@ function testAgentIdMapping() {
   }
 
   console.log(`  Result: ${passed}/${testCases.length} mappings correct`);
+  console.log(`  Expected: ${testCases.length} agents for full 12-persona system`);
   return passed === testCases.length;
 }
 
