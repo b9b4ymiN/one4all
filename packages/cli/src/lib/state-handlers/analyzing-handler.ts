@@ -348,9 +348,13 @@ ${businessText}
 
 IMPORTANT: Current price is $${evidence?.current_price || 'check research data'}. Based on current valuation levels and the 52-week range ($${evidence?.week_52_low || 'N/A'}-$${evidence?.week_52_high || 'N/A'}), recommend position sizing.
 
+CRITICAL: You are NOT providing a fair value estimate. You are providing a POSITION SIZE as a percentage.
+- DO NOT include "fair_value" in your JSON response
+- ONLY include "position_size" (a number between 0-15 representing portfolio percentage)
+
 Provide portfolio allocation guidance in JSON format:
 {
-  "position_size": number (max % of portfolio, 0-15%),
+  "position_size": number (max % of portfolio, 0-15),
   "conviction_level": number (1-10),
   "view": string (portfolio fit summary, mention current price vs valuation),
   "entry_strategy": string,
@@ -380,16 +384,46 @@ function parseAnalystOutput(agentId: string, content: string): AnalystOutputData
       // Check if this analyst provides fair_value estimates
       const providesFairValue = isFairValueAnalyst(agentId as AnalystId);
 
-      // Only use position_size as fallback for fair_value analysts
-      // For portfolio-allocator, keep position_size separate
-      let fairValue: number | undefined = data.fair_value;
-      if (!fairValue && providesFairValue && data.position_size !== undefined) {
-        fairValue = data.position_size;
+      // Special handling for portfolio-allocator
+      // LLMs sometimes return fair_value instead of position_size - remap it
+      let fairValue: number | undefined;
+      let positionSize: number | undefined;
+
+      if (agentId === 'portfolio-allocator') {
+        // portfolio-allocator should ONLY return position_size, not fair_value
+        if (data.position_size !== undefined) {
+          positionSize = data.position_size;
+        } else if (data.fair_value !== undefined) {
+          // LLM returned fair_value instead of position_size - remap it
+          positionSize = data.fair_value;
+          console.log(`  [ANALYZING] ${agentId}: LLM returned fair_value instead of position_size - remapping to ${positionSize}%`);
+        }
+        // portfolio-allocator never provides fair_value
+        fairValue = undefined;
+      } else {
+        // For other analysts, handle normally
+        fairValue = data.fair_value;
+        if (!fairValue && providesFairValue && data.position_size !== undefined) {
+          fairValue = data.position_size;
+        }
       }
 
       // Validation: warn if fair_value is between 0 and 1 (likely a percentage bug)
-      if (fairValue !== undefined && fairValue > 0 && fairValue < 1) {
+      if (fairValue !== undefined && fairValue > 0 && fairValue < 1 && providesFairValue) {
         console.warn(`  [ANALYZING] WARNING: ${agentId} returned fair_value=${fairValue} (< $1). This may be a percentage treated as dollars.`);
+      }
+
+      // For portfolio-allocator, log position_size instead of fair_value
+      if (agentId === 'portfolio-allocator') {
+        console.log(`  [ANALYZING] ${agentId}: position_size=${positionSize}%, conviction=${data.conviction_level}`);
+        return {
+          agent_id: agentId,
+          fair_value: undefined, // No fair_value for allocator
+          conviction_level: data.conviction_level || 5,
+          view: data.view || data.entry_strategy || 'No view provided',
+          what_would_change_my_mind: data.what_would_change_my_mind || [],
+          data_gaps: data.data_gaps || [],
+        };
       }
 
       return {
