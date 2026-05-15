@@ -45,6 +45,7 @@ import type {
 
 // Import handler modules
 import * as agentHandler from './modules/agent-handler.js';
+import * as brainstormHandler from './modules/brainstorm-handler.js';
 import * as domainHandler from './modules/domain-handler.js';
 import * as missionEnhanced from './modules/mission-enhanced.js';
 import * as constitutionHandler from './modules/constitution-handler.js';
