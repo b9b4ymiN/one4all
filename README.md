@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/banner.png" alt="one4all banner" width="800"/>
+
 # one4all
 
 **AI-Powered Investment War Room with Multi-Agent Debate**
