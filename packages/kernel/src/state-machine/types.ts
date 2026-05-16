@@ -22,6 +22,11 @@ export enum MissionState {
   DECIDED = "DECIDED",
   JOURNALED = "JOURNALED",
   FAILED = "FAILED",
+  // Inquiry mode states
+  ROUTING = "ROUTING",
+  EXECUTING_INQUIRY = "EXECUTING_INQUIRY",
+  INQUIRY_SYNTHESIZING = "INQUIRY_SYNTHESIZING",
+  DELIVERABLE = "DELIVERABLE",
 }
 
 /**
@@ -84,6 +89,9 @@ export interface Brief {
   description: string;
   owner_assumptions?: Record<string, unknown>;
   constraints?: Record<string, unknown>;
+  // Inquiry mode fields
+  inquiry_mode?: boolean;
+  question?: string;
 }
 
 /**

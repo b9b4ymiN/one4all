@@ -10,6 +10,15 @@ import { BaseLoader } from './base-loader.js';
 import type { AgentConfig, AgentRegistry, RegistryLoadResult, RegistryOptions } from './types.js';
 
 // Zod schemas for AgentConfig components
+const AgentRoutingMetadataSchema = z.object({
+  expertise: z.array(z.string()),
+  when_to_use: z.array(z.string()),
+  output_type: z.array(z.string()),
+  model_tier: z.enum(['expert', 'non_expert']),
+  can_debate_with: z.array(z.string()),
+  example_questions: z.array(z.string()),
+}).optional();
+
 const AgentModelConfigSchema = z.object({
   primary: z.object({
     provider: z.string(),
@@ -61,7 +70,10 @@ const AgentConfigSchema = z.object({
   requires: z.array(z.string()),
   interaction_rules: AgentInteractionRulesSchema,
   output_contract: AgentOutputContractSchema,
-  performance: AgentPerformanceSchema,
+  timeout_seconds: z.number(),
+  max_tokens: z.number(),
+  context_budget_override: z.number().nullable().optional(),
+  routing_metadata: AgentRoutingMetadataSchema,
 });
 
 /**
@@ -125,7 +137,7 @@ export class AgentRegistryLoader extends BaseLoader<AgentRegistry> {
                 continue;
               }
 
-              agents[result.data.id] = result.data;
+              agents[result.data.id] = result.data as AgentConfig;
 
               if (!byDomain[domainId]) {
                 byDomain[domainId] = [];
@@ -159,7 +171,7 @@ export class AgentRegistryLoader extends BaseLoader<AgentRegistry> {
    */
   private async findDomainDirectories(): Promise<string[]> {
     const domainsPath = path.resolve(this.basePath, 'domains');
-    const { default: fs } = await import('node:fs/promises');
+    const fs = await import('node:fs/promises');
     const entries = await fs.readdir(domainsPath, { withFileTypes: true });
 
     return entries
@@ -226,5 +238,160 @@ export class AgentRegistryLoader extends BaseLoader<AgentRegistry> {
   async getAgentModel(agentId: string): Promise<AgentConfig['model']['primary'] | undefined> {
     const agent = await this.getAgent(agentId);
     return agent?.model.primary;
+  }
+
+  // === Routing Query Methods ===
+
+  /**
+   * Find agents by expertise keyword match
+   */
+  async getAgentsByExpertise(keyword: string): Promise<AgentConfig[]> {
+    const result = await this.load();
+    if (!result.data) return [];
+
+    const lowerKeyword = keyword.toLowerCase();
+    return Object.values(result.data.agents).filter((agent) => {
+      if (!agent.routing_metadata?.expertise) return false;
+      return agent.routing_metadata.expertise.some((exp) =>
+        exp.toLowerCase().includes(lowerKeyword)
+      );
+    });
+  }
+
+  /**
+   * Find agents by when_to_use pattern match
+   */
+  async getAgentsByWhenToUse(pattern: string): Promise<AgentConfig[]> {
+    const result = await this.load();
+    if (!result.data) return [];
+
+    const lowerPattern = pattern.toLowerCase();
+    return Object.values(result.data.agents).filter((agent) => {
+      if (!agent.routing_metadata?.when_to_use) return false;
+      return agent.routing_metadata.when_to_use.some((trigger) =>
+        trigger.toLowerCase().includes(lowerPattern)
+      );
+    });
+  }
+
+  /**
+   * Find agents by model tier
+   */
+  async getAgentsByModelTier(tier: 'expert' | 'non_expert'): Promise<AgentConfig[]> {
+    const result = await this.load();
+    if (!result.data) return [];
+
+    return Object.values(result.data.agents).filter((agent) =>
+      agent.routing_metadata?.model_tier === tier
+    );
+  }
+
+  /**
+   * Get agents that can debate with a given agent
+   */
+  async getDebatePartners(agentId: string): Promise<AgentConfig[]> {
+    const agent = await this.getAgent(agentId);
+    if (!agent?.routing_metadata?.can_debate_with) return [];
+
+    const result = await this.load();
+    if (!result.data) return [];
+
+    const partnerIds = agent.routing_metadata.can_debate_with;
+    return partnerIds
+      .map((id) => result.data?.agents[id])
+      .filter(Boolean) as AgentConfig[];
+  }
+
+  /**
+   * Find agents by output type
+   */
+  async getAgentsByOutputType(outputType: string): Promise<AgentConfig[]> {
+    const result = await this.load();
+    if (!result.data) return [];
+
+    const lowerOutputType = outputType.toLowerCase();
+    return Object.values(result.data.agents).filter((agent) => {
+      if (!agent.routing_metadata?.output_type) return false;
+      return agent.routing_metadata.output_type.some((type) =>
+        type.toLowerCase().includes(lowerOutputType)
+      );
+    });
+  }
+
+  /**
+   * Route a question to the best matching agent based on keywords
+   * Returns ranked list of agents with match scores
+   */
+  async routeQuestion(question: string, domain?: string): Promise<Array<{ agent: AgentConfig; score: number }>> {
+    const result = await this.load();
+    if (!result.data) return [];
+
+    const lowerQuestion = question.toLowerCase();
+    const questionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 2);
+    const agents = domain
+      ? await this.getAgentsByDomain(domain)
+      : Object.values(result.data.agents);
+
+    const scored = agents.map((agent) => {
+      let score = 0;
+      const metadata = agent.routing_metadata;
+
+      if (!metadata) return { agent, score: 0 };
+
+      // Check when_to_use patterns - extract meaningful text after prefixes
+      for (const pattern of metadata.when_to_use) {
+        const cleanPattern = pattern.toLowerCase()
+          .replace(/^when asking:\s*/i, '')
+          .replace(/^thai:\s*/i, '')
+          .trim();
+        // Check for any word overlap
+        const patternWords = cleanPattern.split(/\s+/).filter(w => w.length > 2);
+        const matchingWords = patternWords.filter(w => lowerQuestion.includes(w));
+        if (matchingWords.length > 0) {
+          score += matchingWords.length * 3;
+        }
+        // Bonus for exact match
+        if (lowerQuestion.includes(cleanPattern)) {
+          score += 10;
+        }
+      }
+
+      // Check expertise keywords - split by spaces and check each word
+      for (const exp of metadata.expertise) {
+        const expWords = exp.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        const matchingWords = expWords.filter(w => questionWords.includes(w));
+        if (matchingWords.length > 0) {
+          score += matchingWords.length * 5;
+        }
+      }
+
+      // Check example questions for similarity
+      for (const example of metadata.example_questions) {
+        const exampleLower = example.toLowerCase().replace(/^thai:\s*/i, '').trim();
+        const exampleWords = exampleLower.split(/\s+/).filter(w => w.length > 2);
+        const commonWords = questionWords.filter((w) => exampleWords.includes(w));
+        if (commonWords.length > 1) {
+          score += commonWords.length * 2;
+        }
+      }
+
+      return { agent, score };
+    });
+
+    return scored.filter((s) => s.score > 0).sort((a, b) => b.score - a.score);
+  }
+
+  /**
+   * Get expert agents (Opus tier)
+   */
+  async getExpertAgents(): Promise<AgentConfig[]> {
+    return this.getAgentsByModelTier('expert');
+  }
+
+  /**
+   * Get non-expert agents (Haiku tier)
+   */
+  async getNonExpertAgents(): Promise<AgentConfig[]> {
+    return this.getAgentsByModelTier('non_expert');
   }
 }

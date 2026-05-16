@@ -68,3 +68,28 @@ output_contract:
 # Performance
 timeout_seconds: 90
 max_tokens: 6144
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "stress testing"
+    - "scenario analysis"
+    - "downside valuation"
+    - "risk assessment"
+  when_to_use:
+    - "When asking: What's the worst case?"
+    - "Thai: สถานการณ์แย่ที่สุดที่เกิดขึ้นได้"
+    - "Thai: ประเมินความเสี่ยง"
+    - "When analyzing risk scenarios"
+    - "When stress-testing assumptions"
+  output_type:
+    - "downside_scenarios"
+    - "risk_assessment"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "seth-klarman"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: ถ้าตลาดร่วง 50% จะเกิดอะไรขึ้น"
+    - "What's the bear case?"
+    - "What are the key risks?"

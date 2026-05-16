@@ -9,3 +9,6 @@ export * from './cross-qa-handler.js';
 export * from './debating-handler.js';
 export * from './synthesizing-handler.js';
 export * from './journaled-handler.js';
+export * from './routing-handler.js';
+export * from './executing-inquiry-handler.js';
+export * from './inquiry-synthesizing-handler.js';

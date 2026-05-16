@@ -70,3 +70,29 @@ output_contract:
 # Performance
 timeout_seconds: 90
 max_tokens: 6144
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "capital allocation"
+    - "M&A assessment"
+    - "buyback analysis"
+    - "dividend policy"
+  when_to_use:
+    - "When asking: Is management good with capital?"
+    - "Thai: ผู้บริหารใช้เงินอย่างฉลาดไหม"
+    - "Thai: ประเมินการจัดสรรเงินทุน"
+    - "When assessing capital allocation decisions"
+    - "When evaluating buybacks or M&A"
+  output_type:
+    - "capital_allocation_rating"
+    - "management_stewardship"
+    - "reinvestment_efficiency"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "leveraged-franchise"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: ผู้บริหารจัดสรรเงินทุนได้ดีไหม"
+    - "Is management capital allocation smart?"
+    - "Should they do a buyback?"

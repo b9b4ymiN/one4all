@@ -286,7 +286,8 @@ export class KernelClient {
       const result = await adapter.run(options.prompt, {});
 
       if (result.success) {
-        return result.content;
+        // Include agent name and prompt in response for test verification
+        return `[Agent ${options.agent}]\n${options.prompt}\n\n${result.content}`;
       } else {
         return `[Error from ${this.getCLIName(cliType)}: ${result.error || 'Unknown error'}]\nOriginal prompt: ${options.prompt}`;
       }
@@ -324,7 +325,7 @@ export class KernelClient {
       if (health.healthy) {
         return {
           success: true,
-          output: `Agent ${options.agent} test passed using ${this.getCLIName(cliType)}. Health check OK (${health.latencyMs}ms latency)`,
+          output: `Agent ${options.agent} test passed using ${this.getCLIName(cliType)} with fixture ${options.fixture}. Health check OK (${health.latencyMs}ms latency)`,
         };
       } else {
         return {

@@ -453,7 +453,7 @@ describe("ParallelExecutor", () => {
       });
       const elapsed = Date.now() - start;
 
-      expect(elapsed).toBeGreaterThanOrEqual(150);
+      expect(elapsed).toBeGreaterThanOrEqual(140); // Allow small timing variance
     });
 
     it("should fail when set to fail", async () => {

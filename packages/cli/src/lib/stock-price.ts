@@ -25,13 +25,41 @@ export interface FinancialData {
   pe_ratio?: number;
 }
 
+// Thai tickers list (shared between normalizeTicker and FMP skip detection)
+const thaiTickers = [
+  'CPALL', 'CPF', 'BDMS', 'KBANK', 'SCB', 'AOT', 'ADVANC', 'PTT',
+  'PTTEP', 'TU', 'TRUE', 'DTAC', 'LH', 'SF', 'MFC', 'TISCO',
+  'BBL', 'KTB', 'CIMBT', 'BAY', 'TMB', 'BAFS', 'GPSC', 'GLOW',
+  'RATCH', 'BGRIM', 'EA', 'EGCO', 'QH', 'BPP', 'WHA', 'AMATA'
+];
+
+/**
+ * Normalize ticker for Yahoo Finance
+ * Adds exchange suffix for known markets (e.g., Thai stocks get .BK)
+ */
+function normalizeTicker(ticker: string): string {
+  const upperTicker = ticker.toUpperCase();
+
+  if (thaiTickers.includes(upperTicker) && !upperTicker.endsWith('.BK')) {
+    return upperTicker + '.BK';
+  }
+
+  return upperTicker;
+}
+
+function isThaiTicker(ticker: string): boolean {
+  const upper = ticker.toUpperCase().replace('.BK', '');
+  return thaiTickers.includes(upper) || ticker.toUpperCase().endsWith('.BK');
+}
+
 /**
  * Fetch stock price from Yahoo Finance
  */
 export async function fetchStockPrice(ticker: string): Promise<StockPriceData | null> {
   try {
+    const normalizedTicker = normalizeTicker(ticker);
     const response = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`
+      `https://query1.finance.yahoo.com/v8/finance/chart/${normalizedTicker}?interval=1d&range=1d`
     );
 
     if (!response.ok) {
@@ -52,7 +80,7 @@ export async function fetchStockPrice(ticker: string): Promise<StockPriceData | 
     const dayLow = Array.isArray(quote?.low) ? quote.low[0] : quote?.low;
 
     return {
-      ticker: ticker.toUpperCase(),
+      ticker: ticker.toUpperCase(), // Return original ticker, not normalized
       current_price: meta.regularMarketPrice || 0,
       previous_close: meta.previousClose,
       day_high: dayHigh || meta.regularMarketDayHigh,
@@ -96,4 +124,133 @@ function formatMarketCap(cap: number | undefined): string | undefined {
   if (cap >= 1e9) return (cap / 1e9).toFixed(1) + 'B';
   if (cap >= 1e6) return (cap / 1e6).toFixed(1) + 'M';
   return cap.toString();
+}
+
+// === FMP Financial Data Integration ===
+
+const FMP_BASE_URL = 'https://financialmodelingprep.com/api/v3';
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const fmpCache = new Map<string, CacheEntry<unknown>>();
+
+export interface FmpIncomeData {
+  ticker: string;
+  periods: Array<{
+    date: string;
+    revenue: number;
+    net_income: number;
+    eps: number;
+    gross_margin: number;
+    operating_margin: number;
+  }>;
+}
+
+export interface FmpMetricsData {
+  ticker: string;
+  pe_ratio: number;
+  roe: number;
+  roa: number;
+  debt_to_equity: number;
+  current_ratio: number;
+  as_of_date: string;
+}
+
+async function fmpFetch<T>(url: string, retries = 3): Promise<T | null> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (response.status === 429 || response.status >= 500) {
+        if (attempt < retries - 1) {
+          const delay = 1000 * Math.pow(2, attempt);
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        return null;
+      }
+      if (!response.ok) return null;
+      return await response.json() as T;
+    } catch {
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        continue;
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
+function getCached<T>(key: string): T | null {
+  const entry = fmpCache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL_MS) {
+    return entry.data as T;
+  }
+  return null;
+}
+
+function setCache(key: string, data: unknown): void {
+  fmpCache.set(key, { data, timestamp: Date.now() });
+}
+
+export async function getIncomeStatement(ticker: string): Promise<FmpIncomeData | null> {
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey || isThaiTicker(ticker)) return null;
+
+  const cacheKey = `income-${ticker}`;
+  const cached = getCached<FmpIncomeData>(cacheKey);
+  if (cached) return cached;
+
+  const url = `${FMP_BASE_URL}/income-statement/${ticker}?apikey=${apiKey}&limit=4`;
+  const data = await fmpFetch<Array<Record<string, unknown>>>(url);
+  if (!data || !Array.isArray(data) || data.length === 0) return null;
+
+  const periods = data.map((item: Record<string, unknown>) => {
+    const revenue = Number(item.revenue) || 0;
+    const grossProfit = Number(item.grossProfit) || 0;
+    const operatingIncome = Number(item.operatingIncome) || 0;
+    return {
+      date: String(item.date || ''),
+      revenue,
+      net_income: Number(item.netIncome) || 0,
+      eps: Number(item.eps) || 0,
+      gross_margin: revenue > 0 ? grossProfit / revenue : 0,
+      operating_margin: revenue > 0 ? operatingIncome / revenue : 0,
+    };
+  });
+
+  const result: FmpIncomeData = { ticker: ticker.toUpperCase(), periods };
+  setCache(cacheKey, result);
+  return result;
+}
+
+export async function getKeyMetrics(ticker: string): Promise<FmpMetricsData | null> {
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey || isThaiTicker(ticker)) return null;
+
+  const cacheKey = `metrics-${ticker}`;
+  const cached = getCached<FmpMetricsData>(cacheKey);
+  if (cached) return cached;
+
+  const url = `${FMP_BASE_URL}/key-metrics/${ticker}?apikey=${apiKey}&limit=1`;
+  const data = await fmpFetch<Array<Record<string, unknown>>>(url);
+  if (!data || !Array.isArray(data) || data.length === 0) return null;
+
+  const item = data[0];
+  const result: FmpMetricsData = {
+    ticker: ticker.toUpperCase(),
+    pe_ratio: Number(item.peRatio) || 0,
+    roe: Number(item.returnOnEquity) || 0,
+    roa: Number(item.returnOnAssets) || 0,
+    debt_to_equity: Number(item.debtToEquity) || 0,
+    current_ratio: Number(item.currentRatio) || 0,
+    as_of_date: String(item.date || new Date().toISOString()),
+  };
+
+  setCache(cacheKey, result);
+  return result;
 }

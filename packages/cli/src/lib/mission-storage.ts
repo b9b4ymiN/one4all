@@ -69,9 +69,16 @@ export class MissionStorage {
 
       for (const file of files) {
         if (file.endsWith('.json')) {
-          const filePath = join(this.storagePath, file);
-          const data = await readFile(filePath, 'utf-8');
-          missions.push(JSON.parse(data) as StoredMission);
+          try {
+            const filePath = join(this.storagePath, file);
+            const data = await readFile(filePath, 'utf-8');
+            if (data.trim()) {
+              missions.push(JSON.parse(data) as StoredMission);
+            }
+          } catch {
+            // Skip corrupt files
+            continue;
+          }
         }
       }
 

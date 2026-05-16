@@ -69,3 +69,28 @@ output_contract:
 # Performance
 timeout_seconds: 60
 max_tokens: 4096
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "market sentiment"
+    - "consensus tracking"
+    - "analyst expectations"
+    - "market psychology"
+  when_to_use:
+    - "When asking: What does the market think?"
+    - "Thai: ความคิดเห็นในตลาด"
+    - "Thai: นักวิเคราะห์มองกรอบนี้อย่างไร"
+    - "When checking sentiment"
+    - "When comparing to consensus estimates"
+  output_type:
+    - "sentiment_assessment"
+    - "expectations_gap"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "michael-burry"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: นักวิเคราะห์ต่างชอบกรอบนี้ไหม"
+    - "What's the current sentiment on this stock?"
+    - "How does this compare to analyst estimates?"

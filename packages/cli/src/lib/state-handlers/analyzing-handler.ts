@@ -12,7 +12,7 @@ import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { isFairValueAnalyst, type AnalystId } from '@one4all/kernel';
-import { PythonDCFClient } from '@one4all/kernel/python/dcf.js';
+// import { PythonDCFClient } from '@one4all/kernel/python/dcf.js'; // TODO: Implement Python DCF (Phase D1)
 
 export interface AnalystOutputData {
   agent_id: string;
@@ -78,7 +78,9 @@ function sleep(ms: number): Promise<void> {
 
 /**
  * Run Python DCF model with type-safe integration
+ * TODO: Implement Python DCF (Phase D1)
  */
+/*
 async function runDCFModel(ticker: string, evidence: any): Promise<{
   dcfOutput?: string;
   fairValue?: number;
@@ -129,6 +131,7 @@ async function runDCFModel(ticker: string, evidence: any): Promise<{
     return {};
   }
 }
+*/
 
 /**
  * Run analyst with retry logic
@@ -239,13 +242,16 @@ async function buildAnalystPrompt(analyst: string, ticker: string, evidence: any
   const personaContent = await loadPersonaForAgent(analyst);
 
   // Run DCF model for Damodaran
+  // TODO: Implement Python DCF (Phase D1)
   let dcfContext = '';
+  /*
   if (analyst === 'damodaran-valuation') {
     const dcfResult = await runDCFModel(ticker, evidence);
     if (dcfResult.dcfOutput) {
       dcfContext = dcfResult.dcfOutput;
     }
   }
+  */
 
   // Build market data section
   const marketData = evidence?.current_price

@@ -6,13 +6,29 @@
  */
 
 import type { Brief, Mission, MissionState } from '../state-machine/types.js';
-import type { EvidencePack, EvidenceController } from '../evidence-controller/index.js';
-import type { DebateConfig, DebateSession, DebateResult } from '../debate-controller/index.js';
-import type { SynthesisInput, SynthesisOutput } from '../synthesis/index.js';
-import type { InvestmentReport, ReportFormat } from '../report/index.js';
+import type {
+  EvidencePack,
+  EvidenceControllerConfig,
+} from '../evidence-controller/index.js';
+import type {
+  DebateConfig,
+  DebateSession,
+  DebateResult,
+} from '../debate-controller/index.js';
+import type {
+  SynthesisInput,
+  SynthesisOutput,
+  SynthesisConfig,
+  AnalystOutput,
+} from '../synthesis/index.js';
+import type {
+  InvestmentReport,
+  ReportFormat,
+  ReportGeneratorOptions,
+} from '../report/index.js';
 
-import { EvidenceController, createEvidenceController } from '../evidence-controller/index.js';
-import { DebateController, createDebateController, DebatePhase } from '../debate-controller/index.js';
+import { createEvidenceController } from '../evidence-controller/index.js';
+import { createDebateController, DebatePhase } from '../debate-controller/index.js';
 import { SynthesisEngine } from '../synthesis/index.js';
 import { ReportGenerator } from '../report/index.js';
 
@@ -23,7 +39,7 @@ export interface InvestmentWarRoomConfig {
   domain: string;
   participants: string[];
   evidence_sources: string[];
-  debate_config: Partial<DebateConfig>;
+  debate_config: Omit<DebateConfig, 'mission_id' | 'domain' | 'participating_analysts'>;
   report_format: ReportFormat;
 }
 
@@ -51,8 +67,8 @@ export interface AnalysisResult {
  * 4. Report generation
  */
 export class InvestmentWarRoom {
-  private evidenceController: EvidenceController;
-  private debateController: DebateController;
+  private evidenceController: ReturnType<typeof createEvidenceController>;
+  private debateController: ReturnType<typeof createDebateController>;
   private synthesisEngine: SynthesisEngine;
   private reportGenerator: ReportGenerator;
   private config: InvestmentWarRoomConfig;
@@ -60,24 +76,56 @@ export class InvestmentWarRoom {
   constructor(config: InvestmentWarRoomConfig) {
     this.config = config;
 
-    // Initialize controllers
-    this.evidenceController = createEvidenceController({
-      domain: config.domain,
-      enableSourceTiering: true,
-      enableScoring: true,
-    });
+    // Initialize controllers with correct config structures
+    const evidenceConfig: EvidenceControllerConfig = {
+      builderOptions: {
+        maxSourcesPerTier: { 1: 10, 2: 5, 3: 3 },
+      },
+      scorerConfig: {
+        weights: {
+          tier: 0.4,
+          recency: 0.2,
+          relevance: 0.3,
+          diversity: 0.05,
+          verification: 0.05,
+        },
+        recencyDecayDays: 365,
+        boostVerifiedSources: true,
+        diversityWindowDays: 90,
+      },
+    };
+    this.evidenceController = createEvidenceController(evidenceConfig);
 
     this.debateController = createDebateController({
       enabled: true,
     });
 
-    this.synthesisEngine = new SynthesisEngine({
-      consensus_threshold: 0.6,
-    });
+    const synthesisConfig: Partial<SynthesisConfig> = {
+      conviction_thresholds: {
+        reject: 3,
+        watch: 4,
+        research_more: 5,
+        wait_for_price: 6,
+        starter_position: 7,
+        core_candidate: 8,
+      },
+      mos_percentages: {
+        conservative: 30,
+        base: 20,
+        mos_30: 30,
+      },
+      evidence_thresholds: {
+        very_high: 80,
+        high: 60,
+        moderate: 40,
+        low: 20,
+      },
+      constitution_strict: true,
+    };
+    this.synthesisEngine = new SynthesisEngine(synthesisConfig);
 
-    this.reportGenerator = new ReportGenerator({
-      default_format: config.report_format,
-    });
+    // ReportGenerator takes ReportTemplate in constructor, format in generate()
+    this.reportGenerator = new ReportGenerator(); // Use default template
   }
 
   /**
@@ -153,20 +201,30 @@ export class InvestmentWarRoom {
     const warnings: string[] = [];
 
     try {
-      const packResult = await this.evidenceController.buildPack({
-        mission_id: mission.id,
-        domain: this.config.domain,
-        sources: this.config.evidence_sources,
-        max_sources_per_tier: 10,
-        require_tier_1_for_key_claims: true,
+      // Convert evidence_sources string array to source objects
+      const sources = this.config.evidence_sources.map(s => {
+        const parts = s.split(':');
+        return {
+          type: parts[0] || 'other',
+          identifier: parts[1] || s,
+          url: parts[2],
+        };
       });
+
+      const packResult = await this.evidenceController.buildPack(
+        mission.id,
+        `${mission.state.brief?.ticker || 'Unknown'} Analysis`,
+        sources
+      );
 
       if (!packResult.pack) {
         errors.push('Failed to build evidence pack');
         return { success: false, errors, warnings };
       }
 
-      warnings.push(...packResult.warnings);
+      // Add warnings for any fetch errors
+      warnings.push(...packResult.errors.map(e => `Source fetch failed: ${e.source} - ${e.error}`));
+
       return {
         success: true,
         evidence_pack: packResult.pack,
@@ -192,12 +250,16 @@ export class InvestmentWarRoom {
     const warnings: string[] = [];
 
     try {
-      // Create debate session
+      // Create debate session with required fields
       const debateConfig: DebateConfig = {
         mission_id: mission.id,
         domain: this.config.domain,
         participating_analysts: this.config.participants,
-        ...this.config.debate_config,
+        max_rounds: this.config.debate_config.max_rounds ?? 3,
+        max_contributions_per_round: this.config.debate_config.max_contributions_per_round ?? 2,
+        convergence_threshold: this.config.debate_config.convergence_threshold ?? 0.7,
+        timeout_ms: this.config.debate_config.timeout_ms ?? 300000,
+        constitution_strict: this.config.debate_config.constitution_strict ?? false,
       };
 
       const session = this.debateController.createDebate(debateConfig);
@@ -206,8 +268,10 @@ export class InvestmentWarRoom {
       const initialPositions = this.config.participants.map(analystId => ({
         analyst_id: analystId,
         stance: this.assignInitialStance(analystId),
-        thesis_summary: `Initial position based on ${evidencePack.items.length} evidence items`,
         conviction_score: 50,
+        key_arguments: [] as string[],
+        evidence_references: [] as string[],
+        thesis_summary: `Initial position based on ${evidencePack.items.length} evidence items`,
       }));
 
       this.debateController.initializePositions(session.id, initialPositions);
@@ -240,7 +304,7 @@ export class InvestmentWarRoom {
     this.debateController.transitionPhase(session.id, DebatePhase.OPENING_STATEMENTS, 'Begin opening statements');
 
     for (const analystId of this.config.participants) {
-      const topEvidence = evidencePack.items.slice(0, 3).map(e => e.content).join('; ');
+      const topEvidence = evidencePack.items.slice(0, 3).map(e => e.context).join('; ');
       await this.debateController.submitContribution(
         session.id,
         analystId,
@@ -303,24 +367,42 @@ export class InvestmentWarRoom {
     const warnings: string[] = [];
 
     try {
+      // Map debate positions to full AnalystOutput interface
+      const analystOutputs: AnalystOutput[] = debateResult.positions.map(p => ({
+        analyst_id: p.analyst_id,
+        analyst_name: this.getAnalystDisplayName(p.analyst_id),
+        role: this.getAnalystRole(p.analyst_id),
+        stance: p.stance,
+        conviction: Math.round(p.conviction_score / 10), // Convert 0-100 to 1-10
+        fair_value_method: 'Debate consensus',
+        thesis_summary: p.thesis_summary,
+        key_positives: [],
+        key_negatives: [],
+        thesis_breakers: [],
+        follow_up_events: [],
+        data_gaps: [],
+        completed_at: new Date(),
+      }));
+
       const synthesisInput: SynthesisInput = {
         mission_id: mission.id,
         domain: this.config.domain,
-        analyst_outputs: debateResult.positions.map(p => ({
-          analyst_id: p.analyst_id,
-          stance: p.stance,
-          conviction_score: p.conviction_score,
-          thesis_summary: p.thesis_summary,
-          key_arguments: p.key_arguments,
-          fair_value_estimate: 100, // Would be extracted from actual output
-          what_would_change_my_mind: 'Data gaps identified',
-        })),
-        debate_summary: debateResult.synthesis_input,
-        evidence_summary: {
-          total_items: debateResult.total_contributions,
-          tier_1_count: debateResult.total_contributions, // Placeholder
-          average_score: 0.7,
+        subject: {
+          type: mission.state.brief?.type || 'stock_analysis',
+          ticker: mission.state.brief?.ticker,
         },
+        analyst_outputs: analystOutputs,
+        evidence_summary: {
+          total_sources: 0, // Would come from evidence pack
+          tier_counts: { 1: 0, 2: 0, 3: 0 },
+          items_extracted: debateResult.total_contributions,
+        },
+        market_data: {
+          current_price: 100, // Would come from market data adapter
+          as_of_date: new Date(),
+        },
+        mission_started: new Date(),
+        constitution_rules: [],
       };
 
       const synthesis = await this.synthesisEngine.synthesize(synthesisInput);
@@ -338,6 +420,32 @@ export class InvestmentWarRoom {
   }
 
   /**
+   * Get display name for analyst
+   */
+  private getAnalystDisplayName(analystId: string): string {
+    const names: Record<string, string> = {
+      'damodaran-valuation': 'Damodaran',
+      'seth-klarman': 'Seth Klarman',
+      'devil-advocate': 'Devil\'s Advocate',
+      'portfolio-manager': 'Portfolio Manager',
+    };
+    return names[analystId] || analystId;
+  }
+
+  /**
+   * Get role for analyst
+   */
+  private getAnalystRole(analystId: string): 'valuation' | 'downside' | 'growth' | 'technical' | 'portfolio' {
+    const roles: Record<string, 'valuation' | 'downside' | 'growth' | 'technical' | 'portfolio'> = {
+      'damodaran-valuation': 'valuation',
+      'seth-klarman': 'downside',
+      'devil-advocate': 'downside',
+      'portfolio-manager': 'portfolio',
+    };
+    return roles[analystId] || 'valuation';
+  }
+
+  /**
    * Step 4: Generate Report
    */
   private async generateReport(mission: Mission, synthesis: SynthesisOutput): Promise<{
@@ -350,10 +458,8 @@ export class InvestmentWarRoom {
     const warnings: string[] = [];
 
     try {
-      const report = await this.reportGenerator.generate({
-        mission_id: mission.id,
-        brief: mission.state.brief!,
-        synthesis,
+      // ReportGenerator.generate takes synthesis first, then options
+      const report = this.reportGenerator.generate(synthesis, {
         format: this.config.report_format,
       });
 

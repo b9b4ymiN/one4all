@@ -43,10 +43,10 @@ describe('MCP Inspector Validation', () => {
       server = new One4AllMCPServer(config);
     });
 
-    it('should expose all 31 MCP tools with correct schemas', async () => {
+    it('should expose all 33 MCP tools with correct schemas', async () => {
       const tools = server['getToolDefinitions']();
 
-      expect(tools).toHaveLength(31);
+      expect(tools).toHaveLength(33);
 
       const toolNames = tools.map(t => t.name);
       // Core mission tools

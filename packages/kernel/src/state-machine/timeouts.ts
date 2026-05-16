@@ -55,7 +55,7 @@ export const DEFAULT_TIMEOUTS: Record<MissionState, TimeoutConfig> = {
   },
 
   [MissionState.SYNTHESIZING]: {
-    total_ms: 120000, // 2 minutes
+    total_ms: 360000, // 6 minutes - defensive safety net (adapter timeout is 300s)
   },
 
   [MissionState.HUMAN_REVIEW_GATE_3]: {
@@ -71,6 +71,24 @@ export const DEFAULT_TIMEOUTS: Record<MissionState, TimeoutConfig> = {
   },
 
   [MissionState.FAILED]: {
+    // Terminal state - no timeout
+  },
+
+  // Inquiry mode states
+  [MissionState.ROUTING]: {
+    total_ms: 30000, // 30 seconds to route question
+  },
+
+  [MissionState.EXECUTING_INQUIRY]: {
+    per_agent_ms: 120000, // 2 minutes per analyst
+    total_ms: 600000, // 10 minutes max total
+  },
+
+  [MissionState.INQUIRY_SYNTHESIZING]: {
+    total_ms: 120000, // 2 minutes to synthesize
+  },
+
+  [MissionState.DELIVERABLE]: {
     // Terminal state - no timeout
   },
 };

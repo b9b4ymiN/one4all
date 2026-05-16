@@ -25,8 +25,8 @@ describe('ZAIAdapter', () => {
       });
 
       expect(adapter.getName()).toContain('ZAIAdapter');
-      expect(adapter.getModel()).toBe('gpt-4-turbo');
-      expect(adapter.getBaseURL()).toBe('https://api.openai.com/v1');
+      expect(adapter.getModel()).toBe('glm-4.5');
+      expect(adapter.getBaseURL()).toBe('https://api.z.ai/api/coding/paas/v4');
     });
 
     it('should initialize with API key from environment', () => {
@@ -116,12 +116,12 @@ describe('ZAIAdapter', () => {
       adapter = new ZAIAdapter({ apiKey: 'test-key' });
     });
 
-    it('should estimate cost for GPT-4 Turbo', () => {
-      // GPT-4 Turbo: $10/1M input, $30/1M output
+    it('should estimate cost for default model (glm-4.5)', () => {
+      // glm-4.5: $0.50/1M input, $0.50/1M output
       const cost = adapter.estimateCost(100000, 50000);
 
-      // (100000/1000000) * 10 + (50000/1000000) * 30
-      const expected = 1.0 + 1.5;
+      // (100000/1000000) * 0.5 + (50000/1000000) * 0.5
+      const expected = 0.05 + 0.025;
       expect(cost).toBeCloseTo(expected, 4);
     });
 
@@ -149,7 +149,7 @@ describe('ZAIAdapter', () => {
         model: 'unknown-model',
       });
 
-      // Should use default (GPT-4 Turbo) pricing
+      // Should use default (glm-4.5) pricing
       const cost = adapter.estimateCost(1000, 500);
       expect(cost).toBeGreaterThan(0);
     });
@@ -163,7 +163,7 @@ describe('ZAIAdapter', () => {
     });
 
     it('should get current model', () => {
-      expect(adapter.getModel()).toBe('gpt-4-turbo');
+      expect(adapter.getModel()).toBe('glm-4.5');
     });
 
     it('should set new model', () => {
@@ -172,7 +172,7 @@ describe('ZAIAdapter', () => {
     });
 
     it('should get current base URL', () => {
-      expect(adapter.getBaseURL()).toBe('https://api.openai.com/v1');
+      expect(adapter.getBaseURL()).toBe('https://api.z.ai/api/coding/paas/v4');
     });
 
     it('should set new base URL', () => {
@@ -187,8 +187,16 @@ describe('ZAIAdapter', () => {
   });
 
   describe('Provider detection', () => {
-    it('should detect OpenAI from default URL', () => {
+    it('should detect ZAI provider from default ZAI URL', () => {
       const adapter = new ZAIAdapter({ apiKey: 'test-key' });
+      expect(adapter.getName()).toContain('ZAI');
+    });
+
+    it('should detect OpenAI when baseURL is set', () => {
+      const adapter = new ZAIAdapter({
+        apiKey: 'test-key',
+        baseURL: 'https://api.openai.com/v1',
+      });
       expect(adapter.getName()).toContain('OpenAI');
     });
 

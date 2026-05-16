@@ -68,3 +68,29 @@ output_contract:
 # Performance
 timeout_seconds: 90
 max_tokens: 6144
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "competitive moat"
+    - "barriers to entry"
+    - "competitive landscape"
+    - "disruption risk"
+  when_to_use:
+    - "When asking: What's the moat?"
+    - "Thai: คู่แข่งไม่สามารถเข้ามาแข่งได้"
+    - "Thai: ประเมินความแข็งแกร่ง"
+    - "When assessing competitive advantages"
+    - "When analyzing industry structure"
+  output_type:
+    - "moat_rating"
+    - "moat_sources"
+    - "durability_assessment"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "klamran-quality"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: บริษัทนี้มีความแข็งแกร่งแค่ไหน"
+    - "What's the competitive moat?"
+    - "How durable is this advantage?"

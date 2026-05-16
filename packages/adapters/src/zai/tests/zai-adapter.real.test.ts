@@ -659,6 +659,7 @@ describe('ZAIAdapter - Real API Tests', () => {
       const adapter = new ZAIAdapter({
         apiKey: USE_REAL_API ? process.env.OPENAI_API_KEY : 'test-key',
         model: 'gpt-4-turbo',
+        baseURL: 'https://api.openai.com/v1',
       });
 
       const name = adapter.getName();

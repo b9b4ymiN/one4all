@@ -12,11 +12,11 @@ description: "Integrates evidence across multiple studies and perspectives"
 # Model Selection
 model:
   primary:
-    provider: claude-cli
-    model: claude-opus-4-5
+    provider: gemini-cli
+    model: gemini-2.5-flash
   fallback:
     - provider: codex-cli
-      model: zai-default
+      model: glm-4.5
 
 # Identity
 identity:

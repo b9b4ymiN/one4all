@@ -70,3 +70,30 @@ output_contract:
 # Performance
 timeout_seconds: 90
 max_tokens: 6144
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "growth analysis"
+    - "reinvestment rate"
+    - "leverage analysis"
+    - "compounding potential"
+  when_to_use:
+    - "When asking: Can this compound?"
+    - "Thai: บริษัทนี้เติบโตต่อเนื่องได้ไหม"
+    - "Thai: วิเคราะห์การเติบโต"
+    - "When assessing compounding machines"
+    - "When analyzing growth-through-leverage"
+  output_type:
+    - "growth_potential"
+    - "reinvestment_rate"
+    - "compounding_case"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "allocator-steward"
+    - "klamran-quality"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: บริษัทนี้สามารถเติบโตต่อเนื่องได้ไหม"
+    - "What's the compounding potential?"
+    - "Is this a growth compounder?"

@@ -69,3 +69,30 @@ output_contract:
 # Performance
 timeout_seconds: 120
 max_tokens: 8192
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "deep value"
+    - "contrarian analysis"
+    - "off-balance sheet assets"
+    - "value catalysts"
+  when_to_use:
+    - "When asking: What's the market missing?"
+    - "Thai: หุ้นที่ถูกมองข้าม"
+    - "Thai: หุ้นที่ถูกประเมินต่ำ"
+    - "When seeking overlooked opportunities"
+    - "When analyzing contrarian plays"
+  output_type:
+    - "intrinsic_value_discount"
+    - "hidden_assets"
+    - "catalysts"
+  model_tier: "expert"
+  can_debate_with:
+    - "damodaran-valuation"
+    - "seth-klarman"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: มีหุ้นไหนที่ถูกมองข้ามในตลาด"
+    - "What hidden assets does this company have?"
+    - "What catalysts could unlock value?"

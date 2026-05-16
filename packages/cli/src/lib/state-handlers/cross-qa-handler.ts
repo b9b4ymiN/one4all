@@ -28,7 +28,7 @@ export async function handleCrossQAState(
   mission: Mission
 ): Promise<MissionState> {
   const ticker = mission.state.brief?.ticker || 'UNKNOWN';
-  const analystOutputs = mission.state.analyst_outputs || [];
+  const analystOutputs = (mission.state.analyst_outputs as unknown as any[]) || [];
 
   console.log(`  [CROSS_QA] Starting cross-agent QA for ${ticker}`);
 
@@ -41,7 +41,7 @@ export async function handleCrossQAState(
   const qaResult = await runCrossQuestioning(mission);
 
   // Store results in mission state
-  mission.state.cross_qa_results = qaResult;
+  (mission.state as any).cross_qa_results = qaResult;
 
   console.log(`  [CROSS_QA] Completed: ${qaResult.questions_answered}/${qaResult.questions_asked} questions answered`);
 
@@ -56,7 +56,7 @@ export async function handleCrossQAState(
  * Execute cross-questioning between analysts
  */
 async function runCrossQuestioning(mission: Mission): Promise<CrossQAResult> {
-  const analystOutputs = mission.state.analyst_outputs || [];
+  const analystOutputs = (mission.state.analyst_outputs as unknown as any[]) || [];
   const questions: Question[] = [];
   const unansweredQuestions: string[] = [];
   let answeredCount = 0;
@@ -64,13 +64,13 @@ async function runCrossQuestioning(mission: Mission): Promise<CrossQAResult> {
   // Step 1: Generate questions from each analyst to others
   for (let i = 0; i < analystOutputs.length; i++) {
     const questioner = analystOutputs[i];
-    const questionerId = questioner.analyst_id || `analyst_${i}`;
+    const questionerId = questioner?.analyst_id || `analyst_${i}`;
 
     for (let j = 0; j < analystOutputs.length; j++) {
       if (i === j) continue; // Don't question yourself
 
       const respondent = analystOutputs[j];
-      const respondentId = respondent.analyst_id || `analyst_${j}`;
+      const respondentId = respondent?.analyst_id || `analyst_${j}`;
 
       // Generate questions based on differences
       const analystQuestions = generateQuestions(
@@ -167,7 +167,7 @@ async function questionAnalyst(mission: Mission, question: Question): Promise<bo
   if (question.evidence_required) {
     // Check if mission has relevant evidence
     const hasEvidence = mission.state.evidence_pack && Object.keys(mission.state.evidence_pack).length > 0;
-    return hasEvidence;
+    return hasEvidence ?? false;
   }
 
   return true;

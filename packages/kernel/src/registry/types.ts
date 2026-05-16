@@ -108,6 +108,15 @@ export interface DomainConfig {
 
 // === Agent Registry Types ===
 
+export interface AgentRoutingMetadata {
+  expertise: string[];
+  when_to_use: string[];
+  output_type: string[];
+  model_tier: 'expert' | 'non_expert';
+  can_debate_with: string[];
+  example_questions: string[];
+}
+
 export interface AgentModelConfig {
   primary: {
     provider: string;
@@ -158,6 +167,7 @@ export interface AgentConfig {
   interaction_rules: AgentInteractionRules;
   output_contract: AgentOutputContract;
   performance: AgentPerformance;
+  routing_metadata?: AgentRoutingMetadata;
 }
 
 export interface AgentRegistry {

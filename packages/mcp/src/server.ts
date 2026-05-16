@@ -45,8 +45,8 @@ import type {
 
 // Import handler modules
 import * as agentHandler from './modules/agent-handler.js';
-import * as brainstormHandler from './modules/brainstorm-handler.js';
 import * as domainHandler from './modules/domain-handler.js';
+import * as inquiryHandler from './modules/inquiry-handler.js';
 import * as missionEnhanced from './modules/mission-enhanced.js';
 import * as constitutionHandler from './modules/constitution-handler.js';
 import * as journalHandler from './modules/journal-handler.js';
@@ -69,7 +69,7 @@ export interface MCPServerConfig {
  *
  * Exposes kernel functionality as MCP tools and resources:
  *
- * **Tools (25 total):**
+ * **Tools (27 total):**
  *
  * Mission Management (9):
  * - create_mission: Create a new analysis mission
@@ -107,6 +107,10 @@ export interface MCPServerConfig {
  * Journal Operations (2):
  * - journal_update: Update journal entry outcome
  * - journal_list: List all journal entries
+ *
+ * Inquiry (2):
+ * - ask: Ask a direct investment question about a stock
+ * - list_thai_tickers: List Thai stock tickers with auto .BK suffix
  *
  * Validation (4):
  * - validate_agents: Validate all agents
@@ -316,6 +320,7 @@ export class One4AllMCPServer {
       ...agentHandler.getAgentTools(),
       ...domainHandler.getDomainTools(),
       ...constitutionHandler.getConstitutionTools(),
+      ...inquiryHandler.getInquiryTools(),
       ...journalHandler.getJournalTools(),
       ...validator.getValidatorTools(),
     ];
@@ -420,6 +425,13 @@ export class One4AllMCPServer {
 
         case 'journal_list':
           return await journalHandler.handleJournalList();
+
+        // Inquiry tools
+        case 'ask':
+          return await inquiryHandler.handleAsk(args);
+
+        case 'list_thai_tickers':
+          return await inquiryHandler.handleListThaiTickers();
 
         // Validation tools
         case 'validate_agents':

@@ -69,3 +69,29 @@ output_contract:
 # Performance
 timeout_seconds: 60
 max_tokens: 4096
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "critical thinking"
+    - "assumption challenging"
+    - "counter-arguments"
+    - "thesis stress-testing"
+  when_to_use:
+    - "When asking: What am I missing?"
+    - "Thai: มีความเสี่ยงอะไรที่ไม่ได้คิดถึง"
+    - "Thai: ท้าทายสมมติฐาน"
+    - "When groupthink is suspected"
+    - "When stress-testing a thesis"
+  output_type:
+    - "counter_arguments"
+    - "weak_points"
+    - "alternative_scenarios"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "all_analysts"
+    - "cio-synthesizer"
+  example_questions:
+    - "Thai: ช่วยท้าทายทฤษฎีของฉัน"
+    - "What's wrong with this thesis?"
+    - "What am I missing?"

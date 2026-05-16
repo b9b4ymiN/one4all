@@ -51,10 +51,14 @@ const OPENAI_PRICING: Record<string, { input: number; output: number }> = {
   'gpt-4-turbo-preview': { input: 10, output: 30 },
   'gpt-3.5-turbo': { input: 0.5, output: 1.5 },
   'gpt-3.5-turbo-16k': { input: 0.5, output: 1.5 },
+  'glm-4.5': { input: 0.5, output: 0.5 },
+  'glm-4.5-air': { input: 0.1, output: 0.1 },
 };
 
-const DEFAULT_MODEL = 'gpt-4-turbo';
-const DEFAULT_MAX_TOKENS = 4096;
+const DEFAULT_PRICING = { input: 0.5, output: 0.5 };
+
+const DEFAULT_MODEL = 'glm-4.5'; // ZAI API default - overridden by agent config
+const DEFAULT_MAX_TOKENS = 16384;
 const DEFAULT_TEMPERATURE = 0.7;
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_RETRY_DELAY = 1000; // 1 second
@@ -92,7 +96,7 @@ export class ZAIAdapter implements Adapter {
 
     this.config = {
       apiKey: config.apiKey ?? process.env.ZAI_API_KEY ?? process.env.OPENAI_API_KEY ?? '',
-      baseURL: config.baseURL ?? 'https://api.zyphra.ai/v1',
+      baseURL: config.baseURL ?? 'https://api.z.ai/api/coding/paas/v4',
       model: config.model ?? DEFAULT_MODEL,
       maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
       retryDelay: config.retryDelay ?? DEFAULT_RETRY_DELAY,
@@ -215,8 +219,19 @@ export class ZAIAdapter implements Adapter {
           throw new Error('No choices returned from ZAI API');
         }
 
+        const msg = choice.message as Record<string, unknown>;
+        const content =
+          (typeof msg.content === 'string' && msg.content)
+          || (typeof msg.reasoning_content === 'string' && msg.reasoning_content)
+          || '';
+
+        // Truncation detection
+        if (choice.finish_reason === 'length') {
+          console.error(`[ZAI_ADAPTER] Output truncated at ${response.usage?.completion_tokens ?? 'unknown'} tokens for ${options.model ?? DEFAULT_MODEL}. Consider increasing max_tokens.`);
+        }
+
         return {
-          content: choice.message.content ?? '',
+          content,
           inputTokens: response.usage?.prompt_tokens ?? 0,
           outputTokens: response.usage?.completion_tokens ?? 0,
         };
@@ -256,16 +271,24 @@ export class ZAIAdapter implements Adapter {
       let content = '';
       let inputTokens = 0;
       let outputTokens = 0;
+      let finishReason: string | null = null;
 
       for await (const chunk of stream) {
         const delta = chunk.choices[0]?.delta;
         if (delta?.content) {
           content += delta.content;
         }
+        if (chunk.choices[0]?.finish_reason) {
+          finishReason = chunk.choices[0].finish_reason;
+        }
         if (chunk.usage) {
           inputTokens = chunk.usage.prompt_tokens;
           outputTokens = chunk.usage.completion_tokens;
         }
+      }
+
+      if (finishReason === 'length') {
+        console.error(`[ZAI_ADAPTER] Output truncated at ${outputTokens || 'unknown'} tokens for ${options.model ?? DEFAULT_MODEL}. Consider increasing max_tokens.`);
       }
 
       // If usage wasn't provided in stream, estimate it
@@ -360,7 +383,7 @@ export class ZAIAdapter implements Adapter {
    * Estimate cost in USD for given token usage
    */
   estimateCost(inputTokens: number, outputTokens: number): number {
-    const pricing = OPENAI_PRICING[this.config.model] ?? OPENAI_PRICING[DEFAULT_MODEL];
+    const pricing = OPENAI_PRICING[this.config.model] ?? DEFAULT_PRICING;
 
     const inputCost = (inputTokens / 1_000_000) * pricing.input;
     const outputCost = (outputTokens / 1_000_000) * pricing.output;
@@ -422,6 +445,7 @@ export class ZAIAdapter implements Adapter {
    */
   private getProviderName(): string {
     const url = this.config.baseURL;
+    if (url.includes('z.ai')) return 'ZAI';
     if (url.includes('api.openai.com')) return 'OpenAI';
     if (url.includes('anthropic')) return 'Anthropic';
     if (url.includes('groq')) return 'Groq';

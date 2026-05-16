@@ -70,3 +70,29 @@ output_contract:
 # Performance
 timeout_seconds: 90
 max_tokens: 6144
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "margin of safety"
+    - "downside protection"
+    - "absolute returns"
+    - "capital preservation"
+  when_to_use:
+    - "When asking: What can go wrong?"
+    - "Thai: ความเสี่ยงในการลงทุน"
+    - "Thai: อัตราผลตอบแทนที่ปลอดภัย"
+    - "When concerned about downside"
+    - "When assessing worst-case scenarios"
+  output_type:
+    - "margin_of_safety"
+    - "downside_scenario"
+  model_tier: "expert"
+  can_debate_with:
+    - "michael-burry"
+    - "damodaran-valuation"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: ลงทุนในหุ้นนี้ปลอดภัยไหม"
+    - "What's the margin of safety at this price?"
+    - "What's the worst-case scenario?"

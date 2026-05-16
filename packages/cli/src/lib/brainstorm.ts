@@ -201,7 +201,7 @@ export async function runBrainstorming(
         return parsed;
       } else {
         console.log(`[BRAINSTORM] ${analystId}: Failed - ${result.error}`);
-        return createErrorResponse(analystId, result.error);
+        return createErrorResponse(analystId, result.error || 'Unknown error');
       }
     } catch (error) {
       console.log(`[BRAINSTORM] ${analystId}: Error - ${error}`);
@@ -306,7 +306,7 @@ Provide a concise synthesis (2-3 paragraphs) that:
 Keep it actionable and focused on decision-making.`;
 
   try {
-    const adapter = createUnifiedAdapter('anthropic');
+    const adapter = createUnifiedAdapter('claude-cli');
     const result = await adapter.run(synthesisPrompt, { timeout: 30000 });
 
     if (result.success) {

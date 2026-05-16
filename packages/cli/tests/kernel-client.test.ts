@@ -4,6 +4,15 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { KernelClient, getKernelClient } from "../src/lib/kernel-client.js";
+import { getMissionStorage } from "../src/lib/mission-storage.js";
+
+// Check for API keys to skip tests that require real LLM calls
+const hasApiKey = !!(
+  process.env.ANTHROPIC_API_KEY ||
+  process.env.OPENAI_API_KEY ||
+  process.env.GEMINI_API_KEY ||
+  process.env.ZAI_API_KEY
+);
 
 describe("KernelClient", () => {
   let client: KernelClient;
@@ -91,7 +100,7 @@ describe("KernelClient", () => {
     });
   });
 
-  describe("startMission", () => {
+  describe.skipIf(!hasApiKey)("startMission", () => {
     it("should start an existing mission", async () => {
       // First create a mission
       const created = await client.createMission({
@@ -116,7 +125,7 @@ describe("KernelClient", () => {
     });
   });
 
-  describe("getMissionStatus", () => {
+  describe.skipIf(!hasApiKey)("getMissionStatus", () => {
     it("should get status of existing mission", async () => {
       const created = await client.createMission({
         domain: "investment-war-room",
@@ -196,6 +205,13 @@ describe("KernelClient", () => {
 
   describe("listMissions", () => {
     beforeEach(async () => {
+      // Clean up any existing missions first
+      const storage = getMissionStorage();
+      const missions = await storage.list();
+      for (const mission of missions) {
+        await storage.delete(mission.mission_id);
+      }
+
       // Create some test missions
       await client.createMission({
         domain: "investment-war-room",
@@ -250,7 +266,7 @@ describe("KernelClient", () => {
     });
   });
 
-  describe("askAgent", () => {
+  describe.skipIf(!hasApiKey)("askAgent", () => {
     it("should return agent response", async () => {
       const response = await client.askAgent({
         agent: "damodaran-valuation",
@@ -292,7 +308,7 @@ describe("KernelClient", () => {
     });
   });
 
-  describe("testAgent", () => {
+  describe.skipIf(!hasApiKey)("testAgent", () => {
     it("should return successful test result", async () => {
       const result = await client.testAgent({
         agent: "damodaran-valuation",

@@ -19,6 +19,9 @@ export interface ClaudeCLIAdapterConfig extends AdapterConfig {
 }
 
 export class ClaudeCLIAdapter {
+  // Known limitation: Output length is controlled by the Claude CLI tool itself.
+  // Unlike the ZAI API adapter, there is no --max-tokens flag to control output length.
+  // The adapter reads stdout from the subprocess until it closes.
   private config: {
     claudePath: string;
     timeout: number;

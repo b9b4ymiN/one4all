@@ -19,6 +19,9 @@ export interface GeminiCLIAdapterConfig extends AdapterConfig {
 }
 
 export class GeminiCLIAdapter {
+  // Known limitation: Output length is controlled by the Gemini CLI tool itself.
+  // Unlike the ZAI API adapter, there is no configurable max_tokens parameter.
+  // The adapter reads stdout from the subprocess until it closes.
   private config: {
     geminiPath: string;
     timeout: number;

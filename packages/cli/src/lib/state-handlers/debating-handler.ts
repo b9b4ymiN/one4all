@@ -6,7 +6,7 @@
  */
 
 import { Mission, MissionState } from '@one4all/kernel';
-import { DebateOrchestrator } from '@one4all/kernel/personas/debate';
+// import { DebateOrchestrator } from '@one4all/kernel/personas/debate'; // TODO: Implement Debate Orchestrator (Phase A2)
 
 /**
  * Handle DEBATING state
@@ -20,25 +20,13 @@ export async function handleDebatingState(
 
   if (debateEnabled) {
     console.log(`  [DEBATING] Running debate phase for ${ticker} (feature flag enabled)`);
+    // TODO: Implement debate orchestrator (Phase A2)
+    // const orchestrator = new DebateOrchestrator();
+    // const debateRecord = await orchestrator.runDebate(mission);
   } else {
     console.log(`  [DEBATING] Simple mode for ${ticker} (set FEATURE_FLAG_DEBATE_MODE=true to enable)`);
   }
 
-  // Create debate orchestrator and run debate
-  const orchestrator = new DebateOrchestrator();
-  const debateRecord = await orchestrator.runDebate(mission);
-
-  // Store debate record in mission state
-  mission.state.debate_records = debateRecord;
-
-  // Log results
-  console.log(`  [DEBATING] ${debateRecord.summary}`);
-  if (debateRecord.rounds.length > 0) {
-    const lastRound = debateRecord.rounds[debateRecord.rounds.length - 1];
-    if (lastRound.unresolved_flags.length > 0) {
-      console.log(`  [DEBATING] Unresolved issues: ${lastRound.unresolved_flags.join(', ')}`);
-    }
-  }
-
+  // For now, skip directly to synthesizing
   return MissionState.SYNTHESIZING;
 }

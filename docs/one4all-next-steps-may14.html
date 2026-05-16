@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>one4all — Next Steps Report (May 14, 2026)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090d;--bg2:#0d0e15;--bg3:#12131c;--surf:#17192a;--s2:#1e2030;
+  --bd:#252840;--bd2:#30334e;
+  --tx:#e0e4f0;--t2:#8a94b4;--t3:#4e566a;
+  --gold:#e8c441;--gold2:#c4a020;
+  --mint:#38d4b0;--mint2:#26b898;
+  --rose:#f05070;--rose2:#c03050;
+  --azure:#5898f0;--amber:#f0a040;
+  --plum:#b478f0;--green:#40c878;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--tx);line-height:1.75;font-size:15px;overflow-x:hidden}
+
+.hero{position:relative;padding:72px 40px 56px;text-align:center;overflow:hidden;border-bottom:1px solid var(--bd)}
+.hero::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(ellipse 85% 55% at 50% 0%,rgba(56,212,176,.07) 0%,transparent 65%),
+  radial-gradient(ellipse 50% 40% at 15% 100%,rgba(232,196,65,.05) 0%,transparent 55%);pointer-events:none}
+.brand{display:inline-flex;align-items:center;gap:9px;margin-bottom:22px}
+.bm{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--mint),var(--mint2));display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:900;font-size:19px;color:#08090d}
+.bt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);letter-spacing:.16em}
+h1{font-family:'Fraunces',serif;font-size:clamp(1.9rem,4.5vw,3.3rem);font-weight:900;line-height:1.1;letter-spacing:-.02em;
+  background:linear-gradient(135deg,var(--mint) 0%,#ccfff0 45%,var(--mint2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+.hs{color:var(--t2);font-size:15px;max-width:620px;margin:0 auto 24px;line-height:1.8}
+.hero-pills{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.pill{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px}
+.pill.ok{background:rgba(56,212,176,.12);border:1px solid rgba(56,212,176,.28);color:var(--mint)}
+.pill.warn{background:rgba(240,160,64,.1);border:1px solid rgba(240,160,64,.28);color:var(--amber)}
+.pill.miss{background:rgba(240,80,112,.08);border:1px solid rgba(240,80,112,.22);color:var(--rose)}
+.pill.gold{background:rgba(232,196,65,.1);border:1px solid rgba(232,196,65,.25);color:var(--gold)}
+
+.nav{background:rgba(13,14,21,.9);border-bottom:1px solid var(--bd);padding:0 40px;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.nav-i{display:flex;overflow-x:auto;scrollbar-width:none;max-width:1240px;margin:0 auto}
+.nav-i::-webkit-scrollbar{display:none}
+.nav a{display:block;padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--t3);text-decoration:none;letter-spacing:.06em;white-space:nowrap;border-bottom:2px solid transparent;transition:all .18s}
+.nav a:hover{color:var(--mint);border-bottom-color:var(--mint)}
+
+.wrap{max-width:1240px;margin:0 auto;padding:0 40px}
+.section{padding:64px 0;border-bottom:1px solid var(--bd)}
+.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:36px}
+.sn{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mint);letter-spacing:.2em;opacity:.65}
+.st{font-family:'Fraunces',serif;font-size:1.75rem;font-weight:700;letter-spacing:-.015em}
+.prose{font-size:14px;color:var(--t2);line-height:1.9;margin-bottom:16px}
+.prose strong{color:var(--tx)}
+.prose em{color:var(--mint);font-style:normal}
+
+/* DELTA */
+.delta-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
+@media(max-width:700px){.delta-grid{grid-template-columns:1fr}}
+.delta-col{background:var(--surf);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.delta-col.before{border-color:rgba(240,80,112,.2)}
+.delta-col.after{border-color:rgba(56,212,176,.25)}
+.dc-head{padding:14px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+.delta-col.before .dc-head{background:rgba(240,80,112,.06)}
+.delta-col.after .dc-head{background:rgba(56,212,176,.06)}
+.dc-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.delta-col.before .dc-label{color:var(--rose)}
+.delta-col.after .dc-label{color:var(--mint)}
+.dc-head h3{font-size:14px;font-weight:700}
+.dc-body{padding:16px 22px}
+.dc-item{padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;color:var(--t2);display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start}
+.dc-item:last-child{border-bottom:none}
+.dc-dot.miss{color:var(--rose)}
+.dc-dot.ok{color:var(--mint)}
+.dc-dot.warn{color:var(--amber)}
+
+/* SCORE */
+.score-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px}
+.sc{background:var(--surf);border:1px solid var(--bd);border-radius:11px;padding:20px;text-align:center;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.green::before{background:var(--mint)}
+.sc.gold::before{background:var(--gold)}
+.sc.amber::before{background:var(--amber)}
+.sc.rose::before{background:var(--rose)}
+.sc-num{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:900;line-height:1;margin-bottom:4px}
+.sc.green .sc-num{color:var(--mint)}
+.sc.gold .sc-num{color:var(--gold)}
+.sc.amber .sc-num{color:var(--amber)}
+.sc.rose .sc-num{color:var(--rose)}
+.sc-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.sc-note{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* OBSERVATION */
+.obs-list{display:flex;flex-direction:column;gap:12px}
+.obs{background:var(--surf);border:1px solid var(--bd);border-radius:10px;padding:18px 22px;display:grid;grid-template-columns:42px 1fr;gap:14px;align-items:start}
+.obs-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.obs-icon.g{background:rgba(56,212,176,.12);border:1px solid rgba(56,212,176,.25)}
+.obs-icon.a{background:rgba(240,160,64,.1);border:1px solid rgba(240,160,64,.22)}
+.obs-icon.r{background:rgba(240,80,112,.08);border:1px solid rgba(240,80,112,.2)}
+.obs-icon.b{background:rgba(88,152,240,.1);border:1px solid rgba(88,152,240,.22)}
+.obs h4{font-size:14px;font-weight:700;margin-bottom:5px}
+.obs h4.g{color:var(--mint)}
+.obs h4.a{color:var(--amber)}
+.obs h4.r{color:var(--rose)}
+.obs h4.b{color:var(--azure)}
+.obs p{font-size:13px;color:var(--t2);line-height:1.7}
+.obs p strong{color:var(--tx)}
+.obs code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--bg3);border:1px solid var(--bd);padding:1px 5px;border-radius:3px;color:var(--azure)}
+
+/* REALITY */
+.reality-box{background:linear-gradient(135deg,rgba(232,196,65,.06),rgba(56,212,176,.04));border:1px solid var(--bd2);border-radius:14px;padding:30px 36px;margin-bottom:28px}
+.reality-box h3{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:900;color:var(--gold);margin-bottom:18px}
+.rp{display:grid;grid-template-columns:12px 1fr;gap:12px;margin-bottom:13px;align-items:start}
+.rp:last-child{margin-bottom:0}
+.rdot{width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:10px}
+.rp p{font-size:14px;color:var(--t2);line-height:1.8}
+.rp p strong{color:var(--tx)}
+.rp p em{color:var(--mint);font-style:normal}
+
+/* ROADMAP */
+.roadmap{display:flex;flex-direction:column;gap:14px}
+.rm{background:var(--surf);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.rm-head{display:flex;align-items:center;gap:16px;padding:16px 24px;border-bottom:1px solid var(--bd);background:var(--s2)}
+.rm-num{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1.5rem;font-weight:900;flex-shrink:0}
+.rm-num.p1{background:rgba(232,196,65,.15);color:var(--gold);border:2px solid rgba(232,196,65,.3)}
+.rm-num.p2{background:rgba(56,212,176,.12);color:var(--mint);border:2px solid rgba(56,212,176,.28)}
+.rm-num.p3{background:rgba(88,152,240,.12);color:var(--azure);border:2px solid rgba(88,152,240,.28)}
+.rm-num.p4{background:rgba(180,120,240,.11);color:var(--plum);border:2px solid rgba(180,120,240,.28)}
+.rm-head-info h3{font-size:15px;font-weight:700;margin-bottom:3px}
+.rm-head-info p{font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+.rm-tag{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:3px;white-space:nowrap}
+.tag-now{background:rgba(240,80,112,.12);border:1px solid rgba(240,80,112,.25);color:var(--rose)}
+.tag-next{background:rgba(232,196,65,.1);border:1px solid rgba(232,196,65,.22);color:var(--gold)}
+.tag-later{background:rgba(88,152,240,.09);border:1px solid rgba(88,152,240,.2);color:var(--azure)}
+.tag-future{background:rgba(180,120,240,.09);border:1px solid rgba(180,120,240,.2);color:var(--plum)}
+.rm-body{padding:18px 24px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:640px){.rm-body{grid-template-columns:1fr}}
+.rb-col h4{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:var(--t3);text-transform:uppercase;margin-bottom:9px}
+.rb-col ul{list-style:none}
+.rb-col li{padding:5px 0;font-size:13px;color:var(--t2);padding-left:16px;position:relative;line-height:1.6}
+.rb-col li::before{content:'▸';position:absolute;left:0;font-size:10px;top:7px}
+.rm-num.p1~.rm-head-info~.rm-tag+ul li::before,
+.rb-col.gold li::before{color:var(--gold)}
+.rb-col.mint li::before{color:var(--mint)}
+.rb-col.azure li::before{color:var(--azure)}
+.rb-col.plum li::before{color:var(--plum)}
+.rb-col li::before{color:var(--gold)}
+.rb-col code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg3);padding:1px 5px;border-radius:2px;color:var(--azure)}
+.rb-col .done{color:var(--mint)}
+.rb-col .done::before{content:'✓';color:var(--mint)}
+
+/* CRITICAL */
+.crit-box{background:rgba(232,196,65,.05);border:1px solid rgba(232,196,65,.2);border-radius:12px;padding:26px 30px;margin-bottom:24px}
+.crit-box h3{font-size:15px;font-weight:700;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.crit-box ul{list-style:none}
+.crit-box li{padding:6px 0;font-size:13.5px;color:var(--t2);padding-left:20px;position:relative;line-height:1.65}
+.crit-box li::before{content:'→';position:absolute;left:0;color:var(--gold)}
+.crit-box li strong{color:var(--tx)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl thead{background:var(--s2)}
+.tbl th{padding:12px 16px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--bd2)}
+.tbl td{padding:11px 16px;border-bottom:1px solid var(--bd);vertical-align:top}
+.tbl tr:hover td{background:var(--surf)}
+.stag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:3px}
+.stag.ok{background:rgba(56,212,176,.1);border:1px solid rgba(56,212,176,.22);color:var(--mint)}
+.stag.warn{background:rgba(240,160,64,.1);border:1px solid rgba(240,160,64,.22);color:var(--amber)}
+.stag.miss{background:rgba(240,80,112,.08);border:1px solid rgba(240,80,112,.2);color:var(--rose)}
+.stag.new{background:rgba(88,152,240,.1);border:1px solid rgba(88,152,240,.22);color:var(--azure)}
+
+footer{text-align:center;padding:44px 40px;border-top:1px solid var(--bd);color:var(--t3);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;line-height:1.8}
+footer span{color:var(--t2)}
+@media(max-width:640px){.wrap,.hero,.nav{padding-left:20px;padding-right:20px}.reality-box{padding:22px 18px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="brand">
+    <div class="bm">✓</div>
+    <div class="bt">ONE4ALL · PROGRESS REVIEW · MAY 14 2026</div>
+  </div>
+  <h1>จากที่ผมคิดว่าขาด<br>ไปถึงสิ่งที่คุณทำได้แล้ว</h1>
+  <p class="hs">ตรวจสอบ repo ล่าสุด + วิเคราะห์ test output + verification report อย่างละเอียด — อัปเดตสถานะและแนะนำสิ่งที่ต้องทำต่อ</p>
+  <div class="hero-pills">
+    <span class="pill ok">625 tests passing ✅</span>
+    <span class="pill ok">A2A 342/342 ✅</span>
+    <span class="pill ok">E2E AAPL: Works ✅</span>
+    <span class="pill ok">Persona System: Working ✅</span>
+    <span class="pill warn">klarman-downside fair_value=$5 anomaly ⚠</span>
+    <span class="pill warn">Debate phase: ยังถูก skip ⚠</span>
+    <span class="pill gold">Phase 2 ready — เริ่มได้เลย</span>
+  </div>
+</div>
+
+<nav class="nav"><div class="nav-i">
+  <a href="#s1">สิ่งที่เปลี่ยน</a>
+  <a href="#s2">สถานะจริง</a>
+  <a href="#s3">ข้อสังเกต</a>
+  <a href="#s4">ช่องว่างที่เหลือ</a>
+  <a href="#s5">Next Steps</a>
+  <a href="#s6">Verdict</a>
+</nav></div>
+
+<!-- ═════════════════════════════════ -->
+<!-- S1: DELTA -->
+<!-- ═════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="wrap">
+    <div class="sh"><span class="sn">SECTION 01</span><h2 class="st">สิ่งที่เปลี่ยนไปจากรายงานก่อนหน้า</h2></div>
+
+    <p class="prose">ผมต้องบอกตรงๆ: <strong>รายงานก่อนหน้าของผมผิดใน 2 จุดสำคัญ</strong> และโปรเจกต์ก้าวหน้าไปเร็วกว่าที่คาด team ที่แก้ bug ทำงานได้ดีมาก นี่คือภาพ delta ที่ครบถ้วน</p>
+
+    <div class="delta-grid">
+      <div class="delta-col before">
+        <div class="dc-head"><span class="dc-label">รายงานก่อน (ผิด)</span></div>
+        <div class="dc-body">
+          <div class="dc-item"><span class="dc-dot miss">✗</span><span><strong>CLI Adapters ใช้ command ผิด</strong> — ทำให้ระบบรันไม่ได้เลย</span></div>
+          <div class="dc-item"><span class="dc-dot miss">✗</span><span><strong>Persona files หายหมด</strong> — ต้องสร้าง 8 ไฟล์</span></div>
+          <div class="dc-item"><span class="dc-dot miss">✗</span><span><strong>Evidence scoring ผิด</strong> — field check แทน tier-based</span></div>
+          <div class="dc-item"><span class="dc-dot miss">✗</span><span><strong>Python quant ไม่มี</strong> — แค่ schema.py ว่างเปล่า</span></div>
+          <div class="dc-item"><span class="dc-dot miss">✗</span><span><strong>E2E ยังรันไม่ได้</strong> — 0% complete pipeline</span></div>
+          <div class="dc-item"><span class="dc-dot miss">✗</span><span><strong>Analyzing handler</strong> — hardcoded prompts ไม่ใช้ persona</span></div>
+        </div>
+      </div>
+      <div class="delta-col after">
+        <div class="dc-head"><span class="dc-label">สถานะจริงวันนี้ (verified)</span></div>
+        <div class="dc-body">
+          <div class="dc-item"><span class="dc-dot ok">✓</span><span><strong>CLI Adapters ทำงานได้อยู่แล้ว</strong> — verification report ยืนยัน ไม่ใช่ bug</span></div>
+          <div class="dc-item"><span class="dc-dot ok">✓</span><span><strong>3 persona files สร้างแล้ว</strong> — damodaran, klarman, devil-advocate ทำงานได้</span></div>
+          <div class="dc-item"><span class="dc-dot ok">✓</span><span><strong>Tier-based scoring ติดตั้งแล้ว</strong> — verified: 2T1=70, 1T1+2T2=65 ✓</span></div>
+          <div class="dc-item"><span class="dc-dot ok">✓</span><span><strong>Python quant ครบแล้ว</strong> — dcf.py, mos_table.py, reverse_dcf.py, sensitivity.py</span></div>
+          <div class="dc-item"><span class="dc-dot ok">✓</span><span><strong>E2E ทำงานได้แล้ว</strong> — AAPL mission ผ่านจนถึง HUMAN_REVIEW_GATE_3</span></div>
+          <div class="dc-item"><span class="dc-dot ok">✓</span><span><strong>Persona loading implemented</strong> — dynamic load from markdown files</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-cards">
+      <div class="sc green">
+        <div class="sc-label">Tests Passing</div>
+        <div class="sc-num">625</div>
+        <div class="sc-note">across 28 test files</div>
+      </div>
+      <div class="sc green">
+        <div class="sc-label">A2A Protocol</div>
+        <div class="sc-num">342</div>
+        <div class="sc-note">342/342 all passing</div>
+      </div>
+      <div class="sc gold">
+        <div class="sc-label">MCP Tools</div>
+        <div class="sc-num">31</div>
+        <div class="sc-note">+ 5 resources available</div>
+      </div>
+      <div class="sc gold">
+        <div class="sc-label">Agents (War Room)</div>
+        <div class="sc-num">17</div>
+        <div class="sc-note">analysts in the system</div>
+      </div>
+      <div class="sc green">
+        <div class="sc-label">Project Progress</div>
+        <div class="sc-num">~80%</div>
+        <div class="sc-note">towards full MVP goal</div>
+      </div>
+      <div class="sc amber">
+        <div class="sc-label">Personas Ready</div>
+        <div class="sc-num">3/17</div>
+        <div class="sc-note">ยังขาดอีก 14 personas</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════ -->
+<!-- S2: CURRENT STATUS -->
+<!-- ═════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="wrap">
+    <div class="sh"><span class="sn">SECTION 02</span><h2 class="st">สถานะจริงทุก Component</h2></div>
+
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr><th>Component</th><th>สถานะ</th><th>หลักฐาน</th><th>สิ่งที่เหลือ</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>State Machine (13 states)</strong></td>
+          <td><span class="stag ok">✅ Complete</span></td>
+          <td>AAPL mission ผ่านทุก state จนถึง HUMAN_REVIEW_GATE_3</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>CLI Adapters (claude/gemini/codex)</strong></td>
+          <td><span class="stag ok">✅ Working</span></td>
+          <td>Verification report: "INCORRECT — works correctly"; fallback จาก zai→gemini ทำงาน</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>Evidence Scoring (tier-based)</strong></td>
+          <td><span class="stag ok">✅ Fixed</span></td>
+          <td>2T1=70pts, 1T1+2T2=65pts verified ✓</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>Persona System (3 files)</strong></td>
+          <td><span class="stag ok">✅ Phase 1</span></td>
+          <td>damodaran $325, klarman $195 — distinct voices confirmed</td>
+          <td>ต้องสร้าง 14 personas เพิ่ม</td>
+        </tr>
+        <tr>
+          <td><strong>Python Quant Module</strong></td>
+          <td><span class="stag ok">✅ Complete</span></td>
+          <td>dcf.py (105L), mos_table.py (181L), reverse_dcf.py (149L), sensitivity.py (267L)</td>
+          <td>ต้องเชื่อม Damodaran agent ให้ใช้จริง</td>
+        </tr>
+        <tr>
+          <td><strong>Yahoo Finance Integration</strong></td>
+          <td><span class="stag ok">✅ Working</span></td>
+          <td>AAPL real price $298.87 fetched correctly</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>MCP Server (31 tools)</strong></td>
+          <td><span class="stag ok">✅ Complete</span></td>
+          <td>README ระบุ 31 tools, 5 resources — Claude Desktop integration พร้อม</td>
+          <td>ยังไม่ได้ configure Claude Desktop จริงๆ</td>
+        </tr>
+        <tr>
+          <td><strong>A2A Protocol</strong></td>
+          <td><span class="stag ok">✅ 342/342</span></td>
+          <td>Unit/Integration/Behavioral/Chaos tests ทั้งหมด pass</td>
+          <td>ยังไม่มี external agent จริงๆ มา register</td>
+        </tr>
+        <tr>
+          <td><strong>Debate Phase</strong></td>
+          <td><span class="stag warn">⚠ Skipped</span></td>
+          <td>Log: "Skipping debate phase for AAPL (simple analysis mode)"</td>
+          <td>ต้องเปิด "full mode" หรือ remove skip condition</td>
+        </tr>
+        <tr>
+          <td><strong>Cross-QA Phase</strong></td>
+          <td><span class="stag warn">⚠ Skipped</span></td>
+          <td>Log: "Skipping cross-agent QA for AAPL (simple analysis mode)"</td>
+          <td>เหมือนกัน — ต้องเปิด full mode</td>
+        </tr>
+        <tr>
+          <td><strong>portfolio-allocator output</strong></td>
+          <td><span class="stag miss">❌ Anomaly</span></td>
+          <td>fair_value=$5 สำหรับ AAPL ที่ $298 — ผิดปกติมาก</td>
+          <td>ต้องตรวจ persona + output parsing</td>
+        </tr>
+        <tr>
+          <td><strong>JOURNALED State</strong></td>
+          <td><span class="stag warn">⚠ Partial</span></td>
+          <td>Mission หยุดที่ HUMAN_REVIEW_GATE_3 ยังไม่ถึง JOURNALED</td>
+          <td>ต้อง confirm ที่ gate แล้วดูว่า JOURNALED ทำงานถูกต้อง</td>
+        </tr>
+        <tr>
+          <td><strong>Content Studio Domain</strong></td>
+          <td><span class="stag new">📋 Template</span></td>
+          <td>research-studio domain.yaml มีแล้ว แต่ยังเป็น skeleton</td>
+          <td>ต้องสร้าง agents + personas สำหรับ domain ที่ 2</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════ -->
+<!-- S3: KEY OBSERVATIONS -->
+<!-- ═════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="wrap">
+    <div class="sh"><span class="sn">SECTION 03</span><h2 class="st">ข้อสังเกตสำคัญจาก Test Output</h2></div>
+
+    <div class="obs-list">
+
+      <div class="obs">
+        <div class="obs-icon g">🎯</div>
+        <div>
+          <h4 class="g">Persona System ทำงานได้จริง — Evidence ที่ดีที่สุด</h4>
+          <p>damodaran $325 (bullish, 8.8% upside) vs klarman $195 (bearish, 35% MOS needed) — <strong>ต่างกัน $130 หรือ 40%</strong> นี่คือ proof ว่า persona content ทำงาน การที่ Damodaran bullish และ Klarman bearish ตรงกับ philosophy จริงๆ ของนักลงทุนสองคนนี้ถือว่า <em>ระบบสร้างความคิดที่แตกต่างได้จริง</em></p>
+        </div>
+      </div>
+
+      <div class="obs">
+        <div class="obs-icon a">⚠️</div>
+        <div>
+          <h4 class="a">portfolio-allocator: fair_value=$5 เป็น Bug ชัดเจน</h4>
+          <p>AAPL ราคา $298 แต่ portfolio-allocator ให้ fair_value=$5 — ผิดปกติ 60 เท่า ความเป็นไปได้: (1) output parsing ดึง field ผิด (2) persona ไม่มีไฟล์ เลย fallback ไปใช้ generic prompt ที่ไม่ได้ออกแบบมาให้ให้ fair_value (3) JSON schema ของ output_contract ไม่ strict พอ ต้อง investigate ก่อนเชื่อ synthesis output</p>
+        </div>
+      </div>
+
+      <div class="obs">
+        <div class="obs-icon a">🔇</div>
+        <div>
+          <h4 class="a">Debate และ Cross-QA ถูก Skip — "simple analysis mode"</h4>
+          <p>นี่คือส่วนที่ทำให้ one4all ต่างจาก multi-LLM wrapper ธรรมดา แต่ในการทดสอบนี้ถูก skip หมด ต้องตรวจว่า "simple analysis mode" เป็น flag ใน code ที่ไหน และเปิด full mode ได้อย่างไร <strong>Debate Controller ที่ทำมาทั้งหมดยังไม่เคยถูกทดสอบในสภาพแวดล้อมจริง</strong></p>
+        </div>
+      </div>
+
+      <div class="obs">
+        <div class="obs-icon g">🔄</div>
+        <div>
+          <h4 class="g">Fallback System ทำงานถูกต้อง</h4>
+          <p>klarman-downside: <code>zai-api → gemini-cli</code> fallback ทำงานโดยอัตโนมัติเมื่อ zai-api connection error ไม่มี crash ไม่มี mission failure — นี่คือ production-ready behavior ที่ดีมาก</p>
+        </div>
+      </div>
+
+      <div class="obs">
+        <div class="obs-icon b">📊</div>
+        <div>
+          <h4 class="b">CIO Synthesis Decision = WATCH — Reasonable</h4>
+          <p>ด้วย Damodaran $325 และ Klarman $195 กับราคาปัจจุบัน $298 การ synthesize เป็น <strong>WATCH</strong> และ fair_value=$220 ฟังดู conservative แต่ reasonable แสดงว่า synthesis engine ทำงานได้ถูกต้องในระดับหนึ่ง แต่ fair_value=$220 น่าสงสัยว่ามาจาก $5 ของ portfolio-allocator pull ค่า down มากแค่ไหน</p>
+        </div>
+      </div>
+
+      <div class="obs">
+        <div class="obs-icon g">🏗️</div>
+        <div>
+          <h4 class="g">MCP + A2A Architecture — ล้ำหน้ากว่าที่คิด</h4>
+          <p>README ล่าสุดแสดงว่า one4all มี MCP server 31 tools พร้อม Claude Desktop integration และ A2A protocol ครบ — นี่หมายความว่า <strong>คุณสามารถสั่งจาก Claude Desktop ว่า "วิเคราะห์ CPALL" แล้ว one4all ทำงานแทนได้ทันที</strong> นี่คือสิ่งที่น่าสนใจที่สุดและต้องลองใช้</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════ -->
+<!-- S4: REMAINING GAPS -->
+<!-- ═════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="wrap">
+    <div class="sh"><span class="sn">SECTION 04</span><h2 class="st">ช่องว่างที่ยังเหลือ — จัดลำดับตามผลกระทบ</h2></div>
+
+    <div class="crit-box">
+      <h3>⚡ Critical (ต้องแก้ก่อนทุกอย่าง)</h3>
+      <ul>
+        <li><strong>portfolio-allocator fair_value=$5 bug</strong> — ถ้าปล่อยไว้ synthesis output จะ skewed ทุกครั้ง ต้องหาสาเหตุและแก้</li>
+        <li><strong>เปิด Debate + Cross-QA phases</strong> — นี่คือหัวใจของ one4all ที่ยังไม่เคย run จริงใน production mission</li>
+        <li><strong>ทดสอบ HUMAN_REVIEW_GATE_3 → DECIDED → JOURNALED path</strong> — ยังไม่รู้ว่า confirm แล้วระบบทำงานถูกต้องหรือไม่</li>
+      </ul>
+    </div>
+
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr><th>Gap</th><th>Priority</th><th>Effort</th><th>วิธีแก้</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>portfolio-allocator output bug ($5)</strong></td>
+          <td><span class="stag miss">P0 — Fix Now</span></td>
+          <td>1-2 ชม.</td>
+          <td>ตรวจ output parsing + Zod schema ของ portfolio-allocator; สร้าง persona file ถ้ายังไม่มี</td>
+        </tr>
+        <tr>
+          <td><strong>Debate Phase ถูก skip</strong></td>
+          <td><span class="stag miss">P0 — Critical</span></td>
+          <td>2-4 ชม.</td>
+          <td>ค้นหา "simple analysis mode" ใน code, เข้าใจว่า trigger ยังไง, ทดสอบ debate loop กับ damodaran vs klarman จริงๆ</td>
+        </tr>
+        <tr>
+          <td><strong>Persona files: 14 agents ที่ขาด</strong></td>
+          <td><span class="stag warn">P1 — High</span></td>
+          <td>6-10 ชม.</td>
+          <td>สร้างต่อจาก 3 ที่มีแล้ว ใช้ pattern เดียวกัน: forensic-accountant, michael-burry, greenwald-evasion, kessler-moat, portfolio-allocator, consensus-analyst ก่อน</td>
+        </tr>
+        <tr>
+          <td><strong>Damodaran ยังไม่ใช้ Python Quant</strong></td>
+          <td><span class="stag warn">P1 — High</span></td>
+          <td>3-5 ชม.</td>
+          <td>Python modules มีแล้ว แต่ต้องเชื่อม CLI call ใน analyzing-handler ให้ Damodaran เรียก dcf.py ก่อนให้ LLM วิเคราะห์</td>
+        </tr>
+        <tr>
+          <td><strong>JOURNALED state end-to-end</strong></td>
+          <td><span class="stag warn">P1 — High</span></td>
+          <td>1-2 ชม.</td>
+          <td>ทดสอบ confirm ที่ GATE_3 → DECIDED → JOURNALED ครบ; ตรวจ journal entry ที่ได้</td>
+        </tr>
+        <tr>
+          <td><strong>Claude Desktop MCP integration</strong></td>
+          <td><span class="stag new">P2 — Quick Win</span></td>
+          <td>30 นาที</td>
+          <td>ใส่ config ใน Claude Desktop ตาม README แล้วลองสั่ง "วิเคราะห์ CPALL" จาก Claude UI โดยตรง</td>
+        </tr>
+        <tr>
+          <td><strong>Thai stock (SET) data source</strong></td>
+          <td><span class="stag warn">P2 — Important</span></td>
+          <td>1-2 วัน</td>
+          <td>Yahoo Finance ดึง SET stocks ได้บางส่วน (CPALL.BK) แต่ไม่ครบ ต้องทดสอบกับ CPALL จริงๆ ว่า price fetch ได้ถูกไหม</td>
+        </tr>
+        <tr>
+          <td><strong>Content Studio Domain</strong></td>
+          <td><span class="stag new">P3 — Phase 2</span></td>
+          <td>3-5 วัน</td>
+          <td>research-studio skeleton มีแล้ว ต้องเพิ่ม agents: researcher, content-writer, graphic-designer, editor + personas</td>
+        </tr>
+        <tr>
+          <td><strong>Full CPALL test (Thai stock)</strong></td>
+          <td><span class="stag warn">P2 — Validation</span></td>
+          <td>2-3 ชม.</td>
+          <td>ทดสอบด้วย CPALL.BK เพื่อ validate ว่าระบบทำงานกับ Thai market ได้จริง ก่อนใช้งานจริง</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════ -->
+<!-- S5: NEXT STEPS -->
+<!-- ═════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="wrap">
+    <div class="sh"><span class="sn">SECTION 05</span><h2 class="st">Next Steps — แผนที่แนะนำ</h2></div>
+
+    <div class="roadmap">
+
+      <div class="rm">
+        <div class="rm-head">
+          <div class="rm-num p1">A</div>
+          <div class="rm-head-info">
+            <h3>Fix Critical Bugs + ทดสอบ Full Pipeline</h3>
+            <p>ทำก่อนทุกอย่าง · ~1 วัน</p>
+          </div>
+          <span class="rm-tag tag-now">ทำเดี๋ยวนี้</span>
+        </div>
+        <div class="rm-body">
+          <div class="rb-col">
+            <h4>สิ่งที่ต้องทำ</h4>
+            <ul>
+              <li>Debug portfolio-allocator: ทำไม fair_value=$5 — อ่าน analyzing-handler และ output parsing</li>
+              <li>ค้นหา "simple analysis mode" ใน code — เปิด full mode พร้อม debate</li>
+              <li>รัน mission ใหม่กับ full mode: <code>--full</code> หรือ ลบ skip conditions</li>
+              <li>เห็น debate loop จริงๆ: Damodaran vs Klarman</li>
+              <li>confirm ที่ GATE_3 → ดู JOURNALED entry ที่ได้</li>
+            </ul>
+          </div>
+          <div class="rb-col">
+            <h4>Expected Result</h4>
+            <ul>
+              <li>Mission ผ่าน DRAFT → JOURNALED ครบ โดยมี debate rounds</li>
+              <li>portfolio-allocator ให้ fair_value ที่ reasonable</li>
+              <li>Journal entry มี: decision_state, fair_value, thesis_breakers, debate_summary</li>
+              <li>ทุก analyst มี distinct voice และ output ที่ valid ตาม schema</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm">
+        <div class="rm-head">
+          <div class="rm-num p1">B</div>
+          <div class="rm-head-info">
+            <h3>Configure Claude Desktop + ทดสอบ MCP</h3>
+            <p>Quick Win ที่สำคัญที่สุดสำหรับ "one command" experience · ~30 นาที</p>
+          </div>
+          <span class="rm-tag tag-now">ทำก่อน — Quick Win</span>
+        </div>
+        <div class="rm-body">
+          <div class="rb-col">
+            <h4>Steps</h4>
+            <ul>
+              <li>เพิ่ม config ใน Claude Desktop (ตาม README)</li>
+              <li>Restart Claude Desktop</li>
+              <li>ลองพิมพ์: <em>"สร้าง mission วิเคราะห์ AAPL"</em> ใน Claude</li>
+              <li>Claude จะเรียก <code>create_mission</code> MCP tool โดยอัตโนมัติ</li>
+              <li>ดูว่า one4all รับ mission และรัน pipeline ได้หรือไม่</li>
+            </ul>
+          </div>
+          <div class="rb-col">
+            <h4>ทำไมสำคัญ</h4>
+            <ul>
+              <li>นี่คือ "one command" experience ที่คุณต้องการจริงๆ</li>
+              <li>ไม่ต้องรู้ CLI commands — แค่บอก Claude</li>
+              <li>Claude เป็น orchestrator, one4all เป็น execution engine</li>
+              <li>ตรงกับ vision: "สั่งครั้งเดียว ทีม AI ทำงานเอง"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm">
+        <div class="rm-head">
+          <div class="rm-num p2">C</div>
+          <div class="rm-head-info">
+            <h3>Persona Phase 2 — สร้าง 6 personas ที่เหลือ</h3>
+            <p>เพิ่มคุณภาพ debate และ analysis · 1-2 วัน</p>
+          </div>
+          <span class="rm-tag tag-next">Week 1-2</span>
+        </div>
+        <div class="rm-body">
+          <div class="rb-col">
+            <h4>6 Agents ที่ควรสร้างต่อ (Priority order)</h4>
+            <ul>
+              <li><strong>portfolio-allocator.md</strong> — แก้ $5 bug + ให้มี persona จริง</li>
+              <li><strong>forensic-accountant.md</strong> — accounting tricks, เงินสด vs กำไร</li>
+              <li><strong>michael-burry.md</strong> — contrarian, hidden risks, CDS-style thinking</li>
+              <li><strong>consensus-analyst.md</strong> — market consensus aggregation</li>
+              <li><strong>greenwald-evasion.md</strong> — asset value, EPV, franchise value</li>
+              <li><strong>cio-synthesizer.md</strong> — synthesis rules ชัดขึ้น, decision_state enum</li>
+            </ul>
+          </div>
+          <div class="rb-col">
+            <h4>Template ที่ดีสำหรับแต่ละ persona</h4>
+            <ul>
+              <li>Section 1: Identity & Core Philosophy (3-4 ประโยค)</li>
+              <li>Section 2: How I Think (analytical framework)</li>
+              <li>Section 3: My Cognitive Biases & What I Watch For</li>
+              <li>Section 4: Key Questions I Always Ask (5-7 ข้อ)</li>
+              <li>Section 5: What Would Change My Mind</li>
+              <li>Section 6: Output Signature (คำที่ฉันใช้, style)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm">
+        <div class="rm-head">
+          <div class="rm-num p2">D</div>
+          <div class="rm-head-info">
+            <h3>เชื่อม Python Quant กับ Damodaran Agent</h3>
+            <p>ทำให้ fair_value มาจาก math จริง ไม่ใช่ LLM guess · 3-5 ชม.</p>
+          </div>
+          <span class="rm-tag tag-next">Week 2</span>
+        </div>
+        <div class="rm-body">
+          <div class="rb-col">
+            <h4>Architecture ที่แนะนำ</h4>
+            <ul>
+              <li>Analyzing handler เรียก Python subprocess ก่อน LLM call</li>
+              <li><code>python apps/quant/src/dcf.py --ticker AAPL --revenue X --wacc Y</code></li>
+              <li>ได้ fair_value range: conservative/base/optimistic</li>
+              <li>ส่งตัวเลขเหล่านี้เข้า Damodaran persona prompt</li>
+              <li>LLM ใช้ explain และ critique ตัวเลข ไม่ได้คำนวณเอง</li>
+            </ul>
+          </div>
+          <div class="rb-col">
+            <h4>ทำไมสำคัญมาก</h4>
+            <ul>
+              <li>fair_value จาก LLM: เปลี่ยนทุก run, ไม่ reproducible</li>
+              <li>fair_value จาก DCF: deterministic, testable, auditable</li>
+              <li>ตรงกับ philosophy: "story → numbers, ไม่ใช่ numbers → guess"</li>
+              <li>ทำให้ Decision Journal น่าเชื่อถือจริงๆ</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm">
+        <div class="rm-head">
+          <div class="rm-num p3">E</div>
+          <div class="rm-head-info">
+            <h3>ทดสอบ CPALL + Thai SET Market</h3>
+            <p>Validate ว่าระบบทำงานกับ target market จริงๆ · 2-3 ชม.</p>
+          </div>
+          <span class="rm-tag tag-later">Week 2-3</span>
+        </div>
+        <div class="rm-body">
+          <div class="rb-col">
+            <h4>สิ่งที่ต้องทดสอบ</h4>
+            <ul>
+              <li>รัน: <code>one4all mission create --ticker CPALL</code></li>
+              <li>ตรวจว่า Yahoo Finance ดึงราคา CPALL.BK ได้ถูกหรือไม่</li>
+              <li>ตรวจว่า LLM รู้จัก CPALL (CP All) ดีพอ</li>
+              <li>ดูว่า Thai baht units ถูกต้องหรือไม่ในตัวเลข</li>
+              <li>ตรวจ thesis_breakers ที่ได้ว่า relevant กับ Thai market</li>
+            </ul>
+          </div>
+          <div class="rb-col">
+            <h4>ปัญหาที่อาจพบ</h4>
+            <ul>
+              <li>Yahoo Finance อาจต้องใช้ ticker "CPALL.BK" ไม่ใช่ "CPALL"</li>
+              <li>ราคาเป็น THB ไม่ใช่ USD — DCF formula ต้องรองรับ</li>
+              <li>LLM training data เกี่ยวกับ Thai market อาจน้อยกว่า US</li>
+              <li>ต้อง configure source registry สำหรับ SET (56-1 filings)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="rm">
+        <div class="rm-head">
+          <div class="rm-num p4">F</div>
+          <div class="rm-head-info">
+            <h3>Content Studio Domain — Domain ที่ 2</h3>
+            <p>ขยายจาก Investment → General Purpose "One Man Company" · 1 สัปดาห์</p>
+          </div>
+          <span class="rm-tag tag-future">Phase 2 · เมื่อ Investment War Room stable</span>
+        </div>
+        <div class="rm-body">
+          <div class="rb-col">
+            <h4>สิ่งที่ต้องสร้าง</h4>
+            <ul>
+              <li>research-studio domain — ขยาย skeleton ที่มีอยู่</li>
+              <li>Agents: lead-researcher, fact-checker, content-writer, editor, graphic-briefer</li>
+              <li>Constitution: ห้าม speculation, ต้องมี source, tone guidelines</li>
+              <li>Output format: markdown article + image brief + social posts</li>
+              <li>ทดสอบกับ brief: "เขียนบทความ A2A Protocol"</li>
+            </ul>
+          </div>
+          <div class="rb-col">
+            <h4>Kernel ไม่ต้องแตะ — แค่เพิ่ม Domain</h4>
+            <ul>
+              <li>State machine เดิมทั้งหมด ใช้ได้กับ content domain</li>
+              <li>CLI adapters เดิม ใช้ได้ทั้งหมด</li>
+              <li>เพิ่มแค่: domain.yaml + agents/*.yaml + personas/*.md + constitution.yaml</li>
+              <li>นี่คือ proof ว่า architecture ถูกต้อง</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════ -->
+<!-- S6: VERDICT -->
+<!-- ═════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="wrap">
+    <div class="sh"><span class="sn">SECTION 06</span><h2 class="st">Verdict — ภาพใหญ่</h2></div>
+
+    <div class="reality-box">
+      <h3>สิ่งที่ต้องเข้าใจ ณ วันนี้</h3>
+
+      <div class="rp"><div class="rdot"></div><p>
+        <strong>โปรเจกต์นี้ก้าวไปไกลกว่าที่ผมคาดไว้มาก</strong> — ใน 1-2 วันที่ผ่านมาหลังผมวิเคราะห์ครั้งแรก team แก้ 3 ใน 5 gaps ที่ระบุ, เพิ่ม 625 tests, สร้าง A2A protocol 342 tests, และรัน real AAPL mission ได้จริง นี่คือ execution velocity ที่ดีมาก
+      </p></div>
+
+      <div class="rp"><div class="rdot"></div><p>
+        <strong>สิ่งที่ทำให้ระบบนี้น่าตื่นเต้นที่สุดคือ MCP integration</strong> — <em>คุณสามารถนั่งอยู่ใน Claude Desktop แล้วพิมพ์ "วิเคราะห์ CPALL" แล้ว Claude จะเรียก one4all ทำงานให้ทั้งหมดโดยอัตโนมัติ</em> นี่คือ "one command" experience ที่คุณต้องการ แต่ยังไม่ได้ทดสอบจริงๆ — ต้องลองเลย
+      </p></div>
+
+      <div class="rp"><div class="rdot"></div><p>
+        <strong>ช่องว่างที่สำคัญที่สุดตอนนี้ไม่ใช่เรื่อง technical</strong> — มันคือ Debate Phase ยังไม่เคยทำงานจริง (ถูก skip ทุกครั้ง) ถ้า Debate Controller ยังไม่ทำงาน one4all ก็ยังเป็นแค่ "multi-LLM wrapper ที่ parallel analyze" ไม่ใช่ "ทีมผู้เชี่ยวชาญที่ถกเถียงกัน" ตามที่ออกแบบไว้
+      </p></div>
+
+      <div class="rp"><div class="rdot"></div><p>
+        <strong>Python Quant + Damodaran integration</strong> — เป็นสิ่งที่ทำให้ fair_value น่าเชื่อถือจริงๆ ตอนนี้ DCF ยังเป็น LLM estimate ซึ่งเปลี่ยนทุก run ถ้าไม่แก้ decision journal จะไม่ reproducible และไม่ auditable ตามที่ออกแบบไว้
+      </p></div>
+
+      <div class="rp"><div class="rdot"></div><p>
+        <strong>ลำดับที่แนะนำ (สั้นที่สุด):</strong> <em>① configure MCP ใน Claude Desktop แล้วลองใช้ทันที (30 นาที)</em> → ② Debug portfolio-allocator $5 bug + เปิด debate mode → ③ เชื่อม Python Quant กับ Damodaran → ④ ทดสอบ CPALL.BK → ⑤ สร้าง personas ที่เหลือ → ⑥ Content Studio domain
+      </p></div>
+
+      <div class="rp"><div class="rdot"></div><p>
+        <strong>ในแง่เป้าหมาย "One Man Company"</strong> — ระบบอยู่ใน <em>~80% ของ MVP</em> ถ้าแก้ bugs 2-3 จุดและเปิด full pipeline ได้ คุณจะมีระบบที่ทำงานได้ตามเป้าหมายจริงๆ ในอีก 1-2 สัปดาห์ข้างหน้า
+      </p></div>
+    </div>
+
+    <div style="background:var(--s2);border:1px solid var(--bd2);border-radius:12px;padding:24px 28px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t3);letter-spacing:.1em;margin-bottom:16px">ACTION PRIORITY — วันนี้และสัปดาห์หน้า</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:start;gap:14px;padding:12px 16px;background:rgba(240,80,112,.06);border:1px solid rgba(240,80,112,.15);border-radius:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--rose);font-weight:700;min-width:24px">①</span>
+          <p style="font-size:13.5px;color:var(--t2);line-height:1.7"><strong style="color:var(--tx)">Configure MCP ใน Claude Desktop ทันที</strong> — 30 นาที ไม่ต้องเขียน code เลย แค่เพิ่ม config แล้วลองใช้ นี่คือ "wow moment" ที่จะยืนยันว่าทั้งหมดที่ทำมา worth it</p>
+        </div>
+        <div style="display:flex;align-items:start;gap:14px;padding:12px 16px;background:rgba(232,196,65,.05);border:1px solid rgba(232,196,65,.15);border-radius:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);font-weight:700;min-width:24px">②</span>
+          <p style="font-size:13.5px;color:var(--t2);line-height:1.7"><strong style="color:var(--tx)">Debug portfolio-allocator + เปิด debate mode</strong> — 1 วัน นี่คือ unlock ที่ทำให้ระบบทำงาน "ครบ" ตามที่ออกแบบ</p>
+        </div>
+        <div style="display:flex;align-items:start;gap:14px;padding:12px 16px;background:rgba(56,212,176,.05);border:1px solid rgba(56,212,176,.13);border-radius:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);font-weight:700;min-width:24px">③</span>
+          <p style="font-size:13.5px;color:var(--t2);line-height:1.7"><strong style="color:var(--tx)">ทดสอบ CPALL.BK full pipeline</strong> — ตาม use case จริงที่คุณต้องการ ถ้า AAPL ทำงานได้แล้ว CPALL ควรใช้ logic เดิม</p>
+        </div>
+        <div style="display:flex;align-items:start;gap:14px;padding:12px 16px;background:rgba(88,152,240,.05);border:1px solid rgba(88,152,240,.13);border-radius:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--azure);font-weight:700;min-width:24px">④</span>
+          <p style="font-size:13.5px;color:var(--t2);line-height:1.7"><strong style="color:var(--tx)">สร้าง personas ที่เหลือ + เชื่อม Python Quant</strong> — เพิ่มคุณภาพ analysis ให้ professional grade จริงๆ</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>one4all Progress Review — May 14, 2026</span><br>
+  Sources: github.com/b9b4ymiN/one4all (latest) · persona-system-test-output.md · persona-system-verification-report.md<br>
+  <span>โปรเจกต์อยู่ที่ ~80% MVP · ช่องว่างหลักที่เหลือ: Debate Phase + Python Quant Integration + MCP Activation</span>
+</footer>
+</body>
+</html>

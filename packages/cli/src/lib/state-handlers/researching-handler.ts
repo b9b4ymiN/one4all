@@ -7,7 +7,7 @@
 import { Mission, MissionState } from '@one4all/kernel';
 import type { EvidencePackMetadata } from '@one4all/kernel';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
-import { fetchStockPrice, fetchMultipleStockPrices, type StockPriceData } from '../stock-price.js';
+import { fetchStockPrice, fetchMultipleStockPrices, type StockPriceData, getIncomeStatement, getKeyMetrics, type FmpIncomeData, type FmpMetricsData } from '../stock-price.js';
 import { getAdapterForAgent } from '../agent-adapter-mapping.js';
 import { createUnifiedAdapter } from '../adapter-factory.js';
 
@@ -73,8 +73,26 @@ export async function handleResearchingState(
     console.log(`  [RESEARCHING] Could not fetch live price, will use LLM estimate`);
   }
 
+  // Fetch financial statements from FMP (US stocks only)
+  let fmpIncomeData: FmpIncomeData | null = null;
+  let fmpMetricsData: FmpMetricsData | null = null;
+  try {
+    const [incomeResult, metricsResult] = await Promise.allSettled([
+      getIncomeStatement(ticker),
+      getKeyMetrics(ticker),
+    ]);
+    if (incomeResult.status === 'fulfilled') fmpIncomeData = incomeResult.value;
+    if (metricsResult.status === 'fulfilled') fmpMetricsData = metricsResult.value;
+
+    if (fmpIncomeData || fmpMetricsData) {
+      console.log(`  [RESEARCHING] FMP data loaded: income=${fmpIncomeData ? 'yes' : 'no'}, metrics=${fmpMetricsData ? 'yes' : 'no'}`);
+    }
+  } catch (e) {
+    console.log(`  [RESEARCHING] FMP data unavailable, will use LLM knowledge`);
+  }
+
   // Create researcher prompt with live price data
-  const researcherPrompt = buildResearcherPrompt(brief, stockPriceData);
+  const researcherPrompt = buildResearcherPrompt(brief, stockPriceData, fmpIncomeData, fmpMetricsData);
 
   // Get adapter for researcher agent (uses per-agent mapping)
   const researcherAdapterType = getAdapterForAgent('researcher-set');
@@ -134,7 +152,7 @@ export async function handleResearchingState(
 /**
  * Build researcher prompt
  */
-function buildResearcherPrompt(brief: any, stockPriceData: StockPriceData | null): string {
+function buildResearcherPrompt(brief: any, stockPriceData: StockPriceData | null, fmpIncome: FmpIncomeData | null = null, fmpMetrics: FmpMetricsData | null = null): string {
   const ticker = brief?.ticker || 'the company';
   const domain = brief?.domain || 'investment-war-room';
 
@@ -159,9 +177,24 @@ Do NOT estimate or guess different prices. Use these values as the source of tru
     priceNote = `IMPORTANT: Use your knowledge to find the CURRENT stock price and market data for ${ticker}. Do not use outdated prices.`;
   }
 
+  let fmpDataContext = '';
+  if (fmpIncome || fmpMetrics) {
+    fmpDataContext = `\n**IMPORTANT - Use this VERIFIED financial data (from Financial Modeling Prep API):**\n`;
+    if (fmpIncome && fmpIncome.periods.length > 0) {
+      fmpDataContext += `\n**Income Statement (last ${fmpIncome.periods.length} years):**\n`;
+      for (const p of fmpIncome.periods) {
+        fmpDataContext += `- ${p.date}: Revenue=$${(p.revenue / 1e9).toFixed(1)}B, Net Income=$${(p.net_income / 1e9).toFixed(1)}B, EPS=$${p.eps.toFixed(2)}, Gross Margin=${(p.gross_margin * 100).toFixed(1)}%, Operating Margin=${(p.operating_margin * 100).toFixed(1)}%\n`;
+      }
+      fmpDataContext += `\nDo NOT estimate or guess different financial figures. Use these values as the source of truth.\n`;
+    }
+    if (fmpMetrics) {
+      fmpDataContext += `\n**Key Metrics:** P/E=${fmpMetrics.pe_ratio?.toFixed(1) ?? 'N/A'}, ROE=${(fmpMetrics.roe * 100).toFixed(1)}%, ROA=${(fmpMetrics.roa * 100).toFixed(1)}%, Debt/Equity=${fmpMetrics.debt_to_equity?.toFixed(2) ?? 'N/A'}, Current Ratio=${fmpMetrics.current_ratio?.toFixed(2) ?? 'N/A'}\n`;
+    }
+  }
+
   return `You are a research analyst for the ${domain} domain.
 
-Research ${ticker} and provide:${marketDataContext}
+Research ${ticker} and provide:${marketDataContext}${fmpDataContext}
 
 1. **Financial Data**: Revenue, net income, EPS (most recent quarter available)
 2. **Business Model**: Brief description of how the company makes money

@@ -69,3 +69,30 @@ output_contract:
 # Performance
 timeout_seconds: 120
 max_tokens: 8192
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "earnings quality"
+    - "forensic accounting"
+    - "cash flow analysis"
+    - "accounting red flags"
+  when_to_use:
+    - "When asking: Are these earnings real?"
+    - "Thai: กำไรของบริษัทนี้ของจริงไหม"
+    - "Thai: ตรวจสอบคุณภาพกำไร"
+    - "When suspecting accounting issues"
+    - "When assessing earnings sustainability"
+  output_type:
+    - "earnings_quality_rating"
+    - "normalized_earnings"
+    - "red_flags"
+  model_tier: "expert"
+  can_debate_with:
+    - "damodaran-valuation"
+    - "klamran-quality"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: บริษัทนี้มีการปรับปรุงบัญชีไหม"
+    - "Are these earnings sustainable?"
+    - "What accounting red flags exist?"

@@ -151,7 +151,7 @@ DECISION STATE GUIDANCE:
 
 CRITICAL: Your fair_value_conservative must be based ONLY on the fair_value analysts (damodaran-valuation, klarman-downside, greenwald-evasion). Do NOT average in position_size percentages.
 
-Be decisive. Use current price ~${ticker === 'AAPL' ? '180' : '100'} as reference if not provided.`;
+Be decisive. Use actual current price from evidence: ${evidence?.current_price || 'check above'}.`;
 }
 
 /**

@@ -68,3 +68,30 @@ output_contract:
 # Performance
 timeout_seconds: 90
 max_tokens: 6144
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "portfolio fit"
+    - "position sizing"
+    - "correlation analysis"
+    - "portfolio construction"
+  when_to_use:
+    - "When asking: How much should I buy?"
+    - "Thai: ควรถือหุ้นนี้เท่าไหร่"
+    - "Thai: ปรับพอร์ตการลงทุน"
+    - "When determining position size"
+    - "When assessing portfolio impact"
+  output_type:
+    - "position_size"
+    - "portfolio_fit_assessment"
+    - "portfolio_impact"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "seth-klarman"
+    - "downside-protection"
+    - "devil-advocate"
+  example_questions:
+    - "Thai: ควรซื้อหุ้นนี้เท่าไหร่"
+    - "What position size is appropriate?"
+    - "How does this fit my portfolio?"
