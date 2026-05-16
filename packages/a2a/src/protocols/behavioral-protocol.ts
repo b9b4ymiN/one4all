@@ -192,7 +192,8 @@ export function hasBehavioralProtocolSupport(card: AgentCard): boolean {
  */
 export function getSupportedInteractionModes(card: AgentCard): InteractionMode[] {
   const modes = card.a2a_config?.behavioral_protocol?.supported_interaction_modes;
-  return modes || [InteractionMode.REQUEST_RESPONSE];
+  if (!modes) return [InteractionMode.REQUEST_RESPONSE];
+  return modes as InteractionMode[];
 }
 
 /**

@@ -28,7 +28,7 @@ export {
   type AgentCard,
 } from './schemas/agent-card.schema.js';
 
-export type { TrustLevel, InteractionMode } from './schemas/agent-card.schema.js';
+export type { TrustLevel } from './schemas/agent-card.schema.js';
 
 // Trust Verification
 export {

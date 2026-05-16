@@ -26,7 +26,7 @@ export enum A2AGatewayState {
 export interface StateTransition {
   from: A2AGatewayState;
   to: A2AGatewayState;
-  event: GatewayEventType;
+  event?: GatewayEventType;
   action?: (event: GatewayEvent) => void | Promise<void>;
 }
 

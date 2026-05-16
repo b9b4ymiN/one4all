@@ -77,13 +77,13 @@ export class A2AGateway extends EventEmitter {
   constructor(config: A2AGatewayConfig) {
     super();
 
-    this.config = {
+    const defaults: A2AGatewayConfig = {
       default_timeout_seconds: 120,
       enable_fallback: true,
       max_concurrent_requests: 10,
       enable_behavioral_compatibility_checks: true,
-      ...config,
     };
+    this.config = { ...defaults, ...config };
 
     // Initialize components
     this.stateMachine = new A2AGatewayStateMachine();
