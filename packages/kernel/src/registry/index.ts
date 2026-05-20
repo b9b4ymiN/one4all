@@ -15,3 +15,6 @@ export { DomainRegistryLoader } from './domain-registry.js';
 export { AgentRegistryLoader } from './agent-registry.js';
 export { SkillRegistryLoader } from './skill-registry.js';
 export { RegistryManager } from './registry-manager.js';
+
+// Persona resolver
+export { PersonaResolver, createPersonaResolver } from './persona-resolver.js';

@@ -49,5 +49,37 @@ output_contract:
     - overgeneralized_conclusions
 
 # Performance
-timeout_seconds: 200
-max_tokens: 16384
+performance:
+  timeout_seconds: 200
+  max_tokens: 16384
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "evidence synthesis"
+    - "meta-analysis"
+    - "research integration"
+    - "cross-study comparison"
+    - "heterogeneity analysis"
+  when_to_use:
+    - "When asking: What do multiple studies show together?"
+    - "When synthesizing findings across multiple studies"
+    - "When conducting meta-analysis or evidence integration"
+    - "When comparing results across different studies"
+    - "When identifying consensus and controversy in literature"
+  output_type:
+    - "evidence_synthesis"
+    - "meta_analysis"
+    - "integrated_findings"
+    - "consensus_assessment"
+    - "research_gaps"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "literature-reviewer"
+    - "methodologist"
+    - "statistician"
+  example_questions:
+    - "What do the studies show when combined?"
+    - "Synthesize the findings across these studies"
+    - "Conduct a meta-analysis of this research area"
+    - "Where is there consensus and where is there controversy?"

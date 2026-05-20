@@ -9,10 +9,8 @@ import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { getAdapterForAgent, getFallbackAdapterForAgent } from '../agent-adapter-mapping.js';
 import { createUnifiedAdapter } from '../adapter-factory.js';
 import { readFile } from 'fs/promises';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { getPersonaResolver, getDomainFromBrief } from '../registry-connector.js';
 import { isFairValueAnalyst, type AnalystId } from '@one4all/kernel';
-// import { PythonDCFClient } from '@one4all/kernel/python/dcf.js'; // TODO: Implement Python DCF (Phase D1)
 
 export interface AnalystOutputData {
   agent_id: string;
@@ -24,36 +22,13 @@ export interface AnalystOutputData {
 }
 
 /**
- * Get the directory path of the current module
- */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-/**
- * Load persona content for a specific agent
+ * Load persona content for a specific agent using registry
  * Returns persona content or null if not found
  */
-async function loadPersonaForAgent(agentId: string): Promise<string | null> {
+async function loadPersonaForAgent(agentId: string, domain: string): Promise<string | null> {
   try {
-    // Map agent IDs to persona filenames (handling naming differences)
-    const personaMap: Record<string, string> = {
-      'damodaran-valuation': 'damodaran',
-      'seth-klarman': 'klarman',
-      'devil-advocate': 'devil-advocate',
-      'allocator-steward': 'allocator',
-      'consensus-analyst': 'consensus',
-      'downside-protection': 'downside-analyst',
-      'greenwald-evasion': 'greenwald',
-      'kessler-moat': 'kessler',
-      'klamran-quality': 'klamran',
-      'leveraged-franchise': 'leveraged-franchise',
-      'michael-burry': 'burry',
-      'portfolio-manager': 'portfolio-manager',
-    };
-
-    const filename = personaMap[agentId] || agentId;
-    // Navigate from packages/cli/src/lib/state-handlers/ to domains/investment-war-room/personas/
-    const personaPath = join(__dirname, '../../../../domains/investment-war-room/personas', `${filename}.md`);
+    const resolver = getPersonaResolver();
+    const personaPath = await resolver.resolvePersonaPath(agentId, domain);
     const personaContent = await readFile(personaPath, 'utf-8');
 
     // Extract just the persona content (after the frontmatter)
@@ -188,6 +163,7 @@ export async function handleAnalyzingState(
 ): Promise<MissionState> {
   const brief = mission.state.brief;
   const ticker = brief?.ticker || 'UNKNOWN';
+  const domain = getDomainFromBrief(brief);
   const evidence = mission.state.synthesis_output as any;
 
   console.log(`  [ANALYZING] Running analysts for ${ticker}...`);
@@ -196,7 +172,7 @@ export async function handleAnalyzingState(
   const config = mission.state.config;
   const allAgents = config?.required_agents || [];
   const analysts = allAgents.filter((a: string) =>
-    ['damodaran-valuation', 'klarman-downside', 'portfolio-allocator'].includes(a)
+    ['damodaran-valuation', 'seth-klarman', 'portfolio-allocator'].includes(a)
   );
 
   // Run analysts with per-agent adapter selection
@@ -205,7 +181,7 @@ export async function handleAnalyzingState(
   for (const analyst of analysts.length > 0 ? analysts : ['damodaran-valuation']) {
     console.log(`  [ANALYZING] Running ${analyst}...`);
 
-    const prompt = await buildAnalystPrompt(analyst, ticker, evidence);
+    const prompt = await buildAnalystPrompt(analyst, ticker, evidence, domain);
     const result = await runAnalystWithRetry(analyst, prompt, 2);
 
     if (result.success && result.output) {
@@ -237,9 +213,9 @@ export async function handleAnalyzingState(
 /**
  * Build analyst prompt with persona content
  */
-async function buildAnalystPrompt(analyst: string, ticker: string, evidence: any): Promise<string> {
+async function buildAnalystPrompt(analyst: string, ticker: string, evidence: any, domain: string): Promise<string> {
   // Load persona content from markdown file
-  const personaContent = await loadPersonaForAgent(analyst);
+  const personaContent = await loadPersonaForAgent(analyst, domain);
 
   // Run DCF model for Damodaran
   // TODO: Implement Python DCF (Phase D1)
@@ -321,7 +297,7 @@ Provide a concise DCF analysis in JSON format:
 
 If financial data is unavailable, use "UNKNOWN" and set conviction_level to 1.`;
 
-    case 'klarman-downside':
+    case 'seth-klarman':
       return `You are Seth Klarman, analyzing downside risk for ${ticker}.
 
 ${marketData}

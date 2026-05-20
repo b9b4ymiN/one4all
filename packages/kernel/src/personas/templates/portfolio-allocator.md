@@ -13,10 +13,10 @@ skills:
   - "portfolio-construction"
   - "risk-adjusted-return-analysis"
   - "diversification-assessment"
-requires: ["damodaran-valuation", "klarman-downside"]
+requires: ["damodaran-valuation", "seth-klarman"]
 interaction_rules:
   can_question: ["cio-synthesizer"]
-  must_challenge: ["damodaran-valuation", "klarman-downside"]
+  must_challenge: ["damodaran-valuation", "seth-klarman"]
   cannot_question: []
 performance:
   timeout_seconds: 300

@@ -55,5 +55,37 @@ output_contract:
     - unsubstantiated_claims
 
 # Performance
-timeout_seconds: 180
-max_tokens: 12288
+performance:
+  timeout_seconds: 180
+  max_tokens: 12288
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "systematic literature review"
+    - "bibliometric analysis"
+    - "evidence synthesis"
+    - "publication bias assessment"
+    - "citation network analysis"
+  when_to_use:
+    - "When asking: What does the literature say about this topic?"
+    - "When conducting comprehensive literature searches"
+    - "When assessing publication bias and file drawer problem"
+    - "When synthesizing evidence across multiple studies"
+    - "When identifying gaps in existing research"
+  output_type:
+    - "systematic_review"
+    - "bibliometric_analysis"
+    - "evidence_synthesis"
+    - "research_gaps"
+    - "bias_assessment"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "methodologist"
+    - "synthesizer"
+    - "peer-reviewer"
+  example_questions:
+    - "What does the literature say about this research question?"
+    - "Conduct a systematic review of studies on this topic"
+    - "Assess publication bias in this research area"
+    - "What are the major gaps in the current literature?"

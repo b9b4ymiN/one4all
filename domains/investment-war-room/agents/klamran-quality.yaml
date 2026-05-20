@@ -67,8 +67,9 @@ output_contract:
     - sell_recommendation
 
 # Performance
-timeout_seconds: 90
-max_tokens: 6144
+performance:
+  timeout_seconds: 90
+  max_tokens: 6144
 
 # Routing Metadata
 routing_metadata:
@@ -79,6 +80,9 @@ routing_metadata:
     - "competitive positioning"
   when_to_use:
     - "When asking: Is this a quality business?"
+    - "When asking: What's the ROIC trend?"
+    - "When asking: How are the margins trending?"
+    - "When asking: What's the business quality rating?"
     - "Thai: นี่เป็นบริษัทที่มีคุณภาพไหม"
     - "Thai: วิเคราะห์คุณภาพกิจการ"
     - "When assessing returns on capital"

@@ -68,8 +68,9 @@ output_contract:
     - sell_recommendation
 
 # Performance
-timeout_seconds: 90
-max_tokens: 6144
+performance:
+  timeout_seconds: 90
+  max_tokens: 6144
 
 # Routing Metadata
 routing_metadata:
@@ -78,12 +79,20 @@ routing_metadata:
     - "downside protection"
     - "absolute returns"
     - "capital preservation"
+    - "worst case analysis"
+    - "downside risk assessment"
   when_to_use:
     - "When asking: What can go wrong?"
+    - "When asking: What can go wrong with this investment?"
     - "Thai: ความเสี่ยงในการลงทุน"
     - "Thai: อัตราผลตอบแทนที่ปลอดภัย"
     - "When concerned about downside"
     - "When assessing worst-case scenarios"
+    - "When asking: What's the worst case?"
+    - "When asking: How much downside risk is there?"
+    - "When asking: Is there a margin of safety?"
+    - "When asking: What's the risk/reward?"
+    - "When asking: What's the risk of permanent loss?"
   output_type:
     - "margin_of_safety"
     - "downside_scenario"

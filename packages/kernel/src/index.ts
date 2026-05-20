@@ -39,7 +39,8 @@ export type {
   DebateResult,
   DebateSynthesisInput,
 } from './debate-controller';
-export { DebateController, createDebateController } from './debate-controller';
+export { DebateController, createDebateController, DebateExecutor, createDebateExecutor } from './debate-controller';
+export type { LLMAdapter, RoundResult, DebateExecutionResult } from './debate-controller';
 
 // Evidence Controller
 export {

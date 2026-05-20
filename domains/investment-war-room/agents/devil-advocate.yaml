@@ -67,8 +67,9 @@ output_contract:
     - sell_recommendation
 
 # Performance
-timeout_seconds: 60
-max_tokens: 4096
+performance:
+  timeout_seconds: 60
+  max_tokens: 4096
 
 # Routing Metadata
 routing_metadata:
@@ -77,12 +78,21 @@ routing_metadata:
     - "assumption challenging"
     - "counter-arguments"
     - "thesis stress-testing"
+    - "contrarian analysis"
+    - "bear case construction"
+    - "assumption challenging"
   when_to_use:
     - "When asking: What am I missing?"
     - "Thai: มีความเสี่ยงอะไรที่ไม่ได้คิดถึง"
     - "Thai: ท้าทายสมมติฐาน"
     - "When groupthink is suspected"
     - "When stress-testing a thesis"
+    - "When asking: What's the bear case?"
+    - "When asking: What's wrong with this thesis?"
+    - "When asking: Challenge my assumptions"
+    - "When asking: What are the weaknesses?"
+    - "When asking: What's the contrarian view?"
+    - "When asking: Play devil's advocate"
   output_type:
     - "counter_arguments"
     - "weak_points"

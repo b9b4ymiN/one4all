@@ -17,7 +17,7 @@ export interface AgentAdapterMapping {
  *
  * Distribution strategy:
  * - damodaran-valuation → claude-cli (high quality reasoning for DCF)
- * - klarman-downside → zai-api (fast risk analysis via API)
+ * - seth-klarman → zai-api (fast risk analysis via API)
  * - portfolio-allocator → gemini-cli (portfolio decisions)
  * - cio-synthesizer → claude-cli (final synthesis needs quality)
  * - researcher-set → gemini-cli (research speed)
@@ -26,7 +26,7 @@ export interface AgentAdapterMapping {
 export const AGENT_ADAPTER_MAP: Record<string, AgentAdapterMapping> = {
   // Analysts
   'damodaran-valuation': { agent_id: 'claude-cli', fallback: 'gemini-cli' },
-  'klarman-downside': { agent_id: 'zai-api', fallback: 'gemini-cli' },
+  'seth-klarman': { agent_id: 'zai-api', fallback: 'claude-cli' },
   'portfolio-allocator': { agent_id: 'gemini-cli', fallback: 'claude-cli' },
 
   // Research team
@@ -47,7 +47,6 @@ export const AGENT_ADAPTER_MAP: Record<string, AgentAdapterMapping> = {
   'leveraged-franchise': { agent_id: 'gemini-cli', fallback: 'zai-api' },
   'michael-burry': { agent_id: 'claude-cli', fallback: 'zai-api' },
   'portfolio-manager': { agent_id: 'gemini-cli', fallback: 'claude-cli' },
-  'seth-klarman': { agent_id: 'zai-api', fallback: 'claude-cli' },
 };
 
 /**

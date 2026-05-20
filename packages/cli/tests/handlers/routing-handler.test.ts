@@ -9,6 +9,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { MissionStateMachine, MissionState } from '@one4all/kernel';
 import { handleRoutingState } from '../../src/lib/state-handlers/routing-handler.js';
 
+const runRealLLM = process.env.TEST_REAL_API === 'true' || process.env.TEST_REAL_API === '1';
+
 describe('routing-handler', () => {
   let stateMachine: MissionStateMachine;
 
@@ -18,7 +20,7 @@ describe('routing-handler', () => {
     });
   });
 
-  describe('handleRoutingState', () => {
+  describe.skipIf(!runRealLLM)('handleRoutingState (requires real LLM)', () => {
     it('should route English valuation question to damodaran-valuation', async () => {
       const mission = stateMachine.createMission({
         type: 'stock_analysis',
@@ -96,7 +98,7 @@ describe('routing-handler', () => {
     });
   });
 
-  describe('parseRoutingPlan', () => {
+  describe.skipIf(!runRealLLM)('parseRoutingPlan (requires real LLM)', () => {
     // Note: parseRoutingPlan is a private function, so we test it indirectly
     // through handleRoutingState behavior
 
@@ -131,6 +133,10 @@ describe('routing-handler', () => {
         'michael-burry',
         'allocator-steward',
         'leveraged-franchise',
+        'forensic-accountant',
+        'cio-synthesizer',
+        'researcher-set',
+        'portfolio-allocator',
       ];
 
       for (const analyst of routingPlan?.selected_analysts || []) {

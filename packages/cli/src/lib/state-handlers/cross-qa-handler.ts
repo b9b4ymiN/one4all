@@ -6,6 +6,10 @@
  */
 
 import { Mission, MissionState } from '@one4all/kernel';
+import { createUnifiedAdapter } from '../adapter-factory.js';
+import { getAdapterForAgent } from '../agent-adapter-mapping.js';
+import { readFile } from 'fs/promises';
+import { getPersonaResolver } from '../registry-connector.js';
 
 interface Question {
   from_analyst: string;
@@ -158,19 +162,90 @@ function generateQuestions(
  * Question an analyst and wait for response
  */
 async function questionAnalyst(mission: Mission, question: Question): Promise<boolean> {
-  // In full implementation, this would:
-  // 1. Send question to the specific analyst
-  // 2. Wait for their response with evidence
-  // 3. Track whether question was answered satisfactorily
+  const domain = mission.state.brief?.domain || 'investment-war-room';
+  const adapterType = getAdapterForAgent(question.to_analyst);
+  const adapter = createUnifiedAdapter(adapterType);
 
-  // For now, simulate answering based on evidence requirement
-  if (question.evidence_required) {
-    // Check if mission has relevant evidence
-    const hasEvidence = mission.state.evidence_pack && Object.keys(mission.state.evidence_pack).length > 0;
-    return hasEvidence ?? false;
+  console.log(`  [CROSS_QA] Questioning ${question.to_analyst}: ${question.question}`);
+
+  try {
+    // Build prompt with persona content
+    const prompt = await buildQAQuestionPrompt(
+      question.to_analyst,
+      question.from_analyst,
+      question.question,
+      domain,
+      mission
+    );
+
+    const result = await adapter.run(prompt, { timeout: 60000 });
+
+    if (result.success) {
+      // Store the answer in mission state for tracking
+      const stateData = mission.state as any;
+      if (!stateData.cross_qa_answers) {
+        stateData.cross_qa_answers = [];
+      }
+
+      stateData.cross_qa_answers.push({
+        question: question.question,
+        from_analyst: question.from_analyst,
+        to_analyst: question.to_analyst,
+        answer: result.content,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log(`  [CROSS_QA] ${question.to_analyst} answered successfully`);
+      return true;
+    } else {
+      console.log(`  [CROSS_QA] ${question.to_analyst} failed to answer: ${result.error}`);
+      return false;
+    }
+  } catch (error) {
+    console.log(`  [CROSS_QA] ${question.to_analyst} error: ${error}`);
+    return false;
+  }
+}
+
+/**
+ * Build QA question prompt with persona content
+ */
+async function buildQAQuestionPrompt(
+  analystId: string,
+  questionerId: string,
+  question: string,
+  domain: string,
+  mission: Mission
+): Promise<string> {
+  // Try to load persona content using registry
+  let personaContent = '';
+  try {
+    const resolver = getPersonaResolver();
+    const personaPath = await resolver.resolvePersonaPath(analystId, domain);
+    const personaRaw = await readFile(personaPath, 'utf-8');
+
+    // Extract persona content after frontmatter
+    const frontmatterEnd = personaRaw.indexOf('---', 3);
+    if (frontmatterEnd !== -1) {
+      personaContent = personaRaw.substring(frontmatterEnd + 3).trim();
+    }
+  } catch (error) {
+    // Persona not found, continue without it
   }
 
-  return true;
+  const ticker = mission.state.brief?.ticker || 'this investment';
+
+  return `You are ${analystId}, participating in a cross-quality analysis for ${ticker}.
+
+## A Question from ${questionerId}:
+${question}
+
+## Your Task:
+Provide a clear, evidence-based response to this question. If the question asks for evidence, cite specific data points, metrics, or observations that support your position.
+
+${personaContent ? `## Your Persona:\n${personaContent}\n` : ''}
+
+**Language Support**: Respond in the same language as the question (Thai or English).`;
 }
 
 /**

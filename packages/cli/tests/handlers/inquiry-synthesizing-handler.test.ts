@@ -106,7 +106,7 @@ describe('inquiry-synthesizing-handler', () => {
             success: true,
           },
           {
-            analyst_id: 'klarman-downside',
+            analyst_id: 'seth-klarman',
             response: 'Downside case at $140',
             insights: ['Risk factors present'],
             what_would_change_my_mind: [],

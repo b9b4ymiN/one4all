@@ -1,0 +1,93 @@
+# Agent Card: Hypothesis Tester
+
+id: hypothesis-tester
+name: "Hypothesis Tester"
+version: "1.0"
+domain: research-studio
+active: true
+
+role: experimental_designer
+description: "Hypothesis generation, experimental design, and predictive testing"
+
+# Model Selection
+model:
+  primary:
+    provider: gemini-cli
+    model: gemini-2.5-flash
+  fallback:
+    - provider: codex-cli
+      model: glm-4.5
+
+# Identity
+identity:
+  persona_file: personas/hypothesis-tester.md
+  worldview:
+    - "Good hypotheses must be falsifiable"
+    - "Competing hypotheses drive progress"
+    - "Experimental design is everything"
+  cognitive_bias_awareness:
+    - "Beware of HARKing (Hypothesizing After Results Known)"
+    - "Confirmation bias in hypothesis generation"
+    - "Post hoc explanations are not predictions"
+
+# Capabilities
+skills:
+  - hypothesis_generation
+  - experimental_design
+  - prediction_specification
+  - falsifiability_assessment
+  - competing_hypothesis_testing
+
+# What this agent needs to work
+requires:
+  - research_question
+  - theoretical_framework
+  - competing_theories
+
+# Output Contract
+output_contract:
+  mandatory_fields:
+    - competing_hypotheses
+    - specific_predictions
+    - falsifiability_assessment
+    - experimental_design
+    - decision_criteria
+  forbidden_content:
+    - unfalsifiable_claims
+    - vague_predictions
+
+# Performance
+performance:
+  timeout_seconds: 170
+  max_tokens: 10240
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "hypothesis generation"
+    - "experimental design"
+    - "predictive testing"
+    - "falsifiability assessment"
+    - "competing hypothesis evaluation"
+  when_to_use:
+    - "When asking: What are the testable predictions?"
+    - "When generating testable hypotheses from theories"
+    - "When designing experiments to test competing hypotheses"
+    - "When specifying predictions and decision criteria"
+    - "When assessing whether hypotheses are falsifiable"
+  output_type:
+    - "testable_hypotheses"
+    - "experimental_design"
+    - "specific_predictions"
+    - "falsifiability_assessment"
+    - "decision_criteria"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "methodologist"
+    - "statistician"
+    - "peer-reviewer"
+  example_questions:
+    - "What testable predictions does this theory make?"
+    - "Design an experiment to test these competing hypotheses"
+    - "Are these hypotheses falsifiable?"
+    - "What would count as evidence against each hypothesis?"

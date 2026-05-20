@@ -20,7 +20,7 @@ export type AnalystId =
   | 'michael-burry'
   | 'portfolio-manager'
   | 'damodaran-valuation'
-  | 'klarman-downside';
+  | 'seth-klarman';
 
 /**
  * Analysts that provide fair_value estimates (intrinsic value per share in dollars)
@@ -28,7 +28,7 @@ export type AnalystId =
  */
 export const FAIR_VALUE_ANALYSTS: readonly AnalystId[] = [
   'damodaran-valuation',  // DCF valuation, intrinsic value in $
-  'klarman-downside',     // Conservative downside estimate in $
+  'seth-klarman',         // Conservative downside estimate in $
   'greenwald-evasion',    // EPV/asset-based value in $
 ] as const;
 

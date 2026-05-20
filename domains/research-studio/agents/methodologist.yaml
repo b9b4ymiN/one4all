@@ -48,5 +48,37 @@ output_contract:
     - claims_without_method_support
 
 # Performance
-timeout_seconds: 150
-max_tokens: 8192
+performance:
+  timeout_seconds: 150
+  max_tokens: 8192
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "research methodology"
+    - "study design evaluation"
+    - "validity assessment"
+    - "experimental design"
+    - "bias detection"
+  when_to_use:
+    - "When asking: Is this research method sound?"
+    - "When evaluating study design and methodology"
+    - "When assessing internal and external validity"
+    - "When reviewing research methods for potential biases"
+    - "When designing experiments or studies"
+  output_type:
+    - "methodological_quality_rating"
+    - "validity_assessment"
+    - "design_recommendations"
+    - "bias_evaluation"
+    - "methodological_critique"
+  model_tier: "non_expert"
+  can_debate_with:
+    - "statistician"
+    - "peer-reviewer"
+    - "hypothesis-tester"
+  example_questions:
+    - "Is this research method sound and appropriate?"
+    - "Evaluate the study design for this research question"
+    - "What are the validity threats in this study?"
+    - "How should we design this experiment?"

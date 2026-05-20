@@ -7,6 +7,7 @@
 
 import { Mission, MissionState } from '@one4all/kernel';
 import { createUnifiedAdapter } from '../adapter-factory.js';
+import { getPersonaResolver, getDomainFromBrief } from '../registry-connector.js';
 
 export interface RoutingPlan {
   confidence: number; // 0-100
@@ -24,11 +25,12 @@ export async function handleRoutingState(
 ): Promise<MissionState> {
   const brief = mission.state.brief;
   const question = brief?.question || brief?.description || '';
+  const domain = getDomainFromBrief(brief);
 
   console.log(`  [ROUTING] Analyzing question for routing...`);
 
   // Build router prompt
-  const prompt = buildRouterPrompt(question, brief?.ticker);
+  const prompt = await buildRouterPrompt(question, brief?.ticker, domain);
 
   // Run routing analysis
   const adapter = createUnifiedAdapter('claude-cli');
@@ -81,8 +83,15 @@ export async function handleRoutingState(
 /**
  * Build router prompt with Thai/English support
  */
-function buildRouterPrompt(question: string, ticker?: string): string {
+async function buildRouterPrompt(question: string, ticker?: string, domain?: string): Promise<string> {
   const tickerContext = ticker ? ` about ${ticker}` : '';
+
+  // Get available analysts from registry
+  const resolver = getPersonaResolver();
+  const knownAnalysts = domain ? await resolver.getKnownAnalysts(domain) : [];
+
+  // Build analyst descriptions for the prompt
+  const analystDescriptions = knownAnalysts.map(id => `- **${id}**: Analyst`).join('\n');
 
   return `You are the CIO Router analyzing an investor's question${tickerContext}.
 
@@ -97,18 +106,7 @@ Analyze this question and determine which analyst personas should respond. Consi
 3. **Confidence Level**: How confident are you in this routing? (0-100)
 
 ## Available Analysts:
-- **damodaran-valuation**: DCF valuation, intrinsic value, narrative-to-numbers
-- **klarman-downside**: Margin of safety, downside risk, risk assessment
-- **devil-advocate**: What could go wrong, bears case, challenges thesis
-- **portfolio-manager**: Position sizing, portfolio allocation, strategy
-- **consensus-analyst**: Market consensus, sell-side views, benchmarks
-- **downside-protection**: Capital preservation, worst-case scenarios
-- **greenwald-evasion**: Earnings power value, competitive advantage
-- **kessler-moat**: Moat analysis, competitive positioning
-- **klamran-quality**: Business quality assessment
-- **michael-burry**: Contrarian opportunities, shorts, hidden risks
-- **allocator-steward**: Long-term stewardship, owner mindset
-- **leveraged-franchise**: Franchise value, leveraged returns
+${analystDescriptions || '- **devil-advocate**: Default analyst'}
 
 Provide your routing decision in this JSON format:
 {
@@ -132,24 +130,9 @@ function parseRoutingPlan(content: string): RoutingPlan {
     if (jsonMatch) {
       const data = JSON.parse(jsonMatch[0]);
 
-      // Validate selected_analysts against known list
-      const knownAnalysts = [
-        'damodaran-valuation',
-        'klarman-downside',
-        'devil-advocate',
-        'portfolio-manager',
-        'consensus-analyst',
-        'downside-protection',
-        'greenwald-evasion',
-        'kessler-moat',
-        'klamran-quality',
-        'michael-burry',
-        'allocator-steward',
-        'leveraged-franchise',
-      ];
-
-      const validAnalysts = (data.selected_analysts || [])
-        .filter((a: string) => knownAnalysts.includes(a));
+      // Accept selected analysts from routing response
+      // Registry-based validation happens at runtime
+      const validAnalysts = (data.selected_analysts || []);
 
       return {
         confidence: Math.min(100, Math.max(0, data.confidence || 50)),

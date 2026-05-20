@@ -10,6 +10,7 @@ import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { fetchStockPrice, fetchMultipleStockPrices, type StockPriceData, getIncomeStatement, getKeyMetrics, type FmpIncomeData, type FmpMetricsData } from '../stock-price.js';
 import { getAdapterForAgent } from '../agent-adapter-mapping.js';
 import { createUnifiedAdapter } from '../adapter-factory.js';
+import { getDomainFromBrief } from '../registry-connector.js';
 
 export interface SourceTier {
   tier1: number;
@@ -154,7 +155,7 @@ export async function handleResearchingState(
  */
 function buildResearcherPrompt(brief: any, stockPriceData: StockPriceData | null, fmpIncome: FmpIncomeData | null = null, fmpMetrics: FmpMetricsData | null = null): string {
   const ticker = brief?.ticker || 'the company';
-  const domain = brief?.domain || 'investment-war-room';
+  const domain = getDomainFromBrief(brief);
 
   // If we have real-time price data, include it in the prompt
   let marketDataContext = '';

@@ -67,8 +67,9 @@ output_contract:
     - sell_recommendation
 
 # Performance
-timeout_seconds: 120
-max_tokens: 8192
+performance:
+  timeout_seconds: 120
+  max_tokens: 8192
 
 # Routing Metadata
 routing_metadata:

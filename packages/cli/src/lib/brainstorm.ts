@@ -8,6 +8,7 @@
 
 import { createUnifiedAdapter } from './adapter-factory.js';
 import { getAdapterForAgent } from './agent-adapter-mapping.js';
+import { getPersonaResolver } from './registry-connector.js';
 
 export interface BrainstormQuestion {
   /** The analyst persona asking the question */
@@ -43,7 +44,7 @@ export interface BrainstormResult {
  * Parse a natural language question to extract perspective
  * Examples:
  * - "ตามมุมมองดาโมดาลัน มีคำถามอะไรบ้าง" → from_perspective: "damodaran-valuation"
- * - "From Seth Klarman's view, what concerns?" → from_perspective: "klarman-downside"
+ * - "From Seth Klarman's view, what concerns?" → from_perspective: "seth-klarman"
  * - "What would the devil's advocate ask?" → from_perspective: "devil-advocate"
  */
 export function parseQuestionPerspective(question: string): string {
@@ -54,7 +55,7 @@ export function parseQuestionPerspective(question: string): string {
     return 'damodaran-valuation';
   }
   if (lowerQ.includes('klarman') || lowerQ.includes('คลาร์แมน') || lowerQ.includes('เคลียร์แมน')) {
-    return 'klarman-downside';
+    return 'seth-klarman';
   }
   if (lowerQ.includes('devil') || lowerQ.includes('ปีศาจ') || lowerQ.includes('ทนายปีศาจ')) {
     return 'devil-advocate';
@@ -99,9 +100,15 @@ async function buildBrainstormPrompt(
   ticker: string,
   question: string,
   questionFrom: string,
-  marketData: any
+  marketData: any,
+  domain: string = 'investment-war-room'
 ): Promise<string> {
-  const personaPath = `./domains/investment-war-room/personas/${analystId}.md`;
+  // Get persona path from registry (for validation, though we don't load the content here)
+  const resolver = getPersonaResolver();
+  const personaPath = await resolver.resolvePersonaPath(analystId, domain).catch(() => {
+    // Fallback if persona not found
+    return '';
+  });
 
   // Build market context
   const marketContext = marketData?.current_price
@@ -149,25 +156,25 @@ export async function runBrainstorming(
     questionFrom?: string;
     includeAnalysts?: string[];
     maxResponses?: number;
+    domain?: string;
   } = {}
 ): Promise<BrainstormResult> {
   const {
     questionFrom = parseQuestionPerspective(question),
     includeAnalysts = undefined,
     maxResponses = 5,
+    domain = 'investment-war-room',
   } = options;
 
-  // Default analysts to include (all 12 if not specified)
-  const defaultAnalysts = [
-    'damodaran-valuation',
-    'klarman-downside',
-    'devil-advocate',
-    'portfolio-manager',
-    'consensus-analyst',
-    'downside-protection',
-  ];
-
-  const analystsToQuery = includeAnalysts || defaultAnalysts.slice(0, maxResponses);
+  // Get default analysts from registry if not specified
+  let analystsToQuery: string[];
+  if (includeAnalysts) {
+    analystsToQuery = includeAnalysts;
+  } else {
+    const resolver = getPersonaResolver();
+    const knownAnalysts = await resolver.getKnownAnalysts(domain);
+    analystsToQuery = knownAnalysts.slice(0, maxResponses);
+  }
 
   console.log(`[BRAINSTORM] Running brainstorming for ${ticker}`);
   console.log(`[BRAINSTORM] Question from perspective: ${questionFrom}`);
@@ -183,7 +190,8 @@ export async function runBrainstorming(
         ticker,
         question,
         questionFrom,
-        marketData
+        marketData,
+        domain
       );
 
       const adapterType = getAdapterForAgent(analystId);

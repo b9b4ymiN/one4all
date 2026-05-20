@@ -6,6 +6,7 @@
 
 import { Mission, MissionState } from '@one4all/kernel';
 import type { MissionConfig } from '@one4all/kernel';
+import { getPersonaResolver, getDomainFromBrief } from '../registry-connector.js';
 
 /**
  * Handle PLANNING state
@@ -71,7 +72,7 @@ function selectAgentsForMission(missionType: string): string[] {
         ...baseTeam,
         'forensic-accountant',
         'damodaran-valuation',
-        'klarman-downside',
+        'seth-klarman',
         'portfolio-allocator',
         'cio-synthesizer',
       ];

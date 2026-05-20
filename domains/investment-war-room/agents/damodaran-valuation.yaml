@@ -71,8 +71,9 @@ output_contract:
     - sell_recommendation
 
 # Performance
-timeout_seconds: 120
-max_tokens: 8192
+performance:
+  timeout_seconds: 120
+  max_tokens: 8192
 
 # Routing Metadata
 routing_metadata:
@@ -83,6 +84,9 @@ routing_metadata:
     - "narrative to numbers"
   when_to_use:
     - "When asking: What is this worth?"
+    - "When asking: What's the intrinsic value?"
+    - "When asking: What's a fair price?"
+    - "When asking: What growth rate is priced into this stock?"
     - "Thai: หุ้นนี้มีมูลค่าเท่าไหร่"
     - "Thai: ประเมินมูลค่าหุ้น"
     - "When needing fair value estimates"

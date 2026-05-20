@@ -67,13 +67,11 @@ const AgentConfigSchema = z.object({
   model: AgentModelConfigSchema,
   identity: AgentIdentitySchema,
   skills: z.array(z.string()),
-  requires: z.array(z.string()),
-  interaction_rules: AgentInteractionRulesSchema,
+  requires: z.array(z.string()).optional(),
+  interaction_rules: AgentInteractionRulesSchema.optional(),
   output_contract: AgentOutputContractSchema,
-  timeout_seconds: z.number(),
-  max_tokens: z.number(),
-  context_budget_override: z.number().nullable().optional(),
-  routing_metadata: AgentRoutingMetadataSchema,
+  performance: AgentPerformanceSchema,
+  routing_metadata: AgentRoutingMetadataSchema.optional(),
 });
 
 /**
@@ -327,7 +325,12 @@ export class AgentRegistryLoader extends BaseLoader<AgentRegistry> {
     if (!result.data) return [];
 
     const lowerQuestion = question.toLowerCase();
-    const questionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 2);
+    const normalizedQuestion = lowerQuestion.replace(/[?!.,;:'"()]/g, '');
+    const questionWords = normalizedQuestion.split(/\s+/).filter(w => w.length > 2);
+
+    // Detect if question contains Thai characters (Unicode range U+0E00 to U+0E7F)
+    const containsThai = /[฀-๿]/.test(question);
+
     const agents = domain
       ? await this.getAgentsByDomain(domain)
       : Object.values(result.data.agents);
@@ -343,16 +346,34 @@ export class AgentRegistryLoader extends BaseLoader<AgentRegistry> {
         const cleanPattern = pattern.toLowerCase()
           .replace(/^when asking:\s*/i, '')
           .replace(/^thai:\s*/i, '')
+          .replace(/[?!.,;:'"()]/g, '')
           .trim();
-        // Check for any word overlap
-        const patternWords = cleanPattern.split(/\s+/).filter(w => w.length > 2);
-        const matchingWords = patternWords.filter(w => lowerQuestion.includes(w));
-        if (matchingWords.length > 0) {
-          score += matchingWords.length * 3;
-        }
-        // Bonus for exact match
-        if (lowerQuestion.includes(cleanPattern)) {
-          score += 10;
+
+        // For Thai text, use substring matching (not word-based)
+        if (containsThai || /[฀-๿]/.test(cleanPattern)) {
+          // Thai: use flexible substring matching
+          // Check if pattern is contained in question or vice versa
+          if (cleanPattern.length > 0 && lowerQuestion.includes(cleanPattern)) {
+            score += 10;
+          }
+          // Also check if question contains parts of the pattern (handle Thai phrases)
+          const patternWords = cleanPattern.split(/\s+/).filter(w => w.length > 0);
+          for (const pword of patternWords) {
+            if (pword.length > 0 && lowerQuestion.includes(pword)) {
+              score += 3;
+            }
+          }
+        } else {
+          // English: use word-based matching
+          const patternWords = cleanPattern.split(/\s+/).filter(w => w.length > 2);
+          const matchingWords = patternWords.filter(w => normalizedQuestion.includes(w));
+          if (matchingWords.length > 0) {
+            score += matchingWords.length * 3;
+          }
+          // Bonus for exact match
+          if (normalizedQuestion.includes(cleanPattern)) {
+            score += 10;
+          }
         }
       }
 
@@ -369,9 +390,21 @@ export class AgentRegistryLoader extends BaseLoader<AgentRegistry> {
       for (const example of metadata.example_questions) {
         const exampleLower = example.toLowerCase().replace(/^thai:\s*/i, '').trim();
         const exampleWords = exampleLower.split(/\s+/).filter(w => w.length > 2);
-        const commonWords = questionWords.filter((w) => exampleWords.includes(w));
-        if (commonWords.length > 1) {
-          score += commonWords.length * 2;
+
+        // For Thai text, use substring matching
+        if (containsThai || /[฀-๿]/.test(exampleLower)) {
+          // Check for substring overlap
+          for (const exampleWord of exampleWords) {
+            if (exampleWord.length > 0 && lowerQuestion.includes(exampleWord)) {
+              score += 2;
+            }
+          }
+        } else {
+          // English: use word-based matching
+          const commonWords = questionWords.filter((w) => exampleWords.includes(w));
+          if (commonWords.length > 1) {
+            score += commonWords.length * 2;
+          }
         }
       }
 

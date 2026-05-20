@@ -179,10 +179,10 @@ export const DamodaranOutputSchema = UniversalAgentFieldsSchema.extend({
 });
 
 /**
- * 2.4 Klarman Downside (klarman-downside)
+ * 2.4 Seth Klarman (seth-klarman)
  */
 export const KlarmanOutputSchema = UniversalAgentFieldsSchema.extend({
-  agent_id: z.literal("klarman-downside"),
+  agent_id: z.literal("seth-klarman"),
   downside_scenarios: z.array(
     z.object({
       scenario: z.enum(["base", "stress", "distress"]),

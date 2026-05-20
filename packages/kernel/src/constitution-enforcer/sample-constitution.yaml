@@ -28,7 +28,7 @@ rules:
     enforcement: BLOCK_MISSION
     applies_to:
       - damodaran-valuation
-      - klarman-downside
+      - seth-klarman
       - portfolio-allocator
     exception: none
     validation:
@@ -184,7 +184,7 @@ rules:
     enforcement: REJECT_OUTPUT
     applies_to:
       - damodaran-valuation
-      - klarman-downside
+      - seth-klarman
     exception: none
     validation:
       criteria:

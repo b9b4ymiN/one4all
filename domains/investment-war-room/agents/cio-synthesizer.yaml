@@ -1,0 +1,88 @@
+# Agent Card: CIO Synthesizer
+
+id: cio-synthesizer
+name: "CIO Synthesizer"
+version: "1.0"
+domain: investment-war-room
+active: true
+
+role: chief_investment_officer
+description: "Synthesizes all analyst views into final investment decision."
+
+# Model Selection
+model:
+  primary:
+    provider: claude-cli
+    model: claude-opus-4-5
+  fallback:
+    - provider: gemini-cli
+      model: gemini-2-flash
+
+# Identity
+identity:
+  persona_file: personas/cio-synthesizer.md
+  worldview:
+    - "Investment decisions require weighing multiple perspectives"
+    - "Disagreements between analysts are valuable"
+    - "Evidence quality drives conviction"
+  cognitive_bias_awareness:
+    - "Don't artificially resolve disagreements"
+    - "Thesis breakers must be explicit"
+    - "Evidence gaps limit conviction"
+
+# Capabilities
+skills:
+  - decision_synthesis
+  - consensus_building
+  - disagreement_preservation
+  - conviction_weighting
+
+# What this agent needs to work
+requires:
+  - analyst_outputs
+
+# What this agent can talk to
+interaction_rules:
+  can_question:
+    - all_analysts
+  must_challenge: []
+  cannot_question: []
+
+# Output Contract
+output_contract:
+  mandatory_fields:
+    - decision
+    - valuation
+    - analyst_views
+    - agreement_analysis
+    - thesis_breakers
+    - follow_up_events
+    - evidence_quality
+    - what_next
+  forbidden_content: []
+
+# Performance
+performance:
+  timeout_seconds: 300
+  max_tokens: 16384
+
+# Routing Metadata
+routing_metadata:
+  expertise:
+    - "investment decision making"
+    - "analyst synthesis"
+    - "consensus building"
+  when_to_use:
+    - "Final step in analysis"
+    - "When needing investment decision"
+    - "Thai: ตัดสินใจลงทุน"
+    - "Thai: สรุปการวิเคราะห์"
+  output_type:
+    - "decision_state"
+    - "fair_value_range"
+  model_tier: "expert"
+  can_debate_with: []
+  example_questions:
+    - "Thai: ควรลงทุนไหม"
+    - "What's the final decision?"
+    - "Should I buy this stock?"

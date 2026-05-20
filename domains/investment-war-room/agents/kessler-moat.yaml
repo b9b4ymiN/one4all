@@ -66,8 +66,9 @@ output_contract:
     - sell_recommendation
 
 # Performance
-timeout_seconds: 90
-max_tokens: 6144
+performance:
+  timeout_seconds: 90
+  max_tokens: 6144
 
 # Routing Metadata
 routing_metadata:
@@ -76,12 +77,20 @@ routing_metadata:
     - "barriers to entry"
     - "competitive landscape"
     - "disruption risk"
+    - "competitive advantage"
+    - "competitive moat"
   when_to_use:
     - "When asking: What's the moat?"
     - "Thai: คู่แข่งไม่สามารถเข้ามาแข่งได้"
     - "Thai: ประเมินความแข็งแกร่ง"
     - "When assessing competitive advantages"
     - "When analyzing industry structure"
+    - "When asking: What are the barriers to entry?"
+    - "When asking: Can competitors easily enter?"
+    - "When asking: How strong is the competitive moat?"
+    - "When asking: How strong is the company's market position?"
+    - "When asking: What protects this business?"
+    - "When asking: Is there a durable competitive advantage?"
   output_type:
     - "moat_rating"
     - "moat_sources"

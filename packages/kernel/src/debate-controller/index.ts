@@ -8,6 +8,10 @@
 
 export { DebateController, createDebateController } from './debate-controller.js';
 
+// Export DebateExecutor and its types
+export { DebateExecutor, createDebateExecutor } from './debate-executor.js';
+export type { LLMAdapter, RoundResult, DebateExecutionResult } from './debate-executor.js';
+
 // Export enums as values
 export { DebatePhase, ConvictionLevel } from './types.js';
 

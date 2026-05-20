@@ -149,7 +149,7 @@ DECISION STATE GUIDANCE:
 - STARTER_POSITION: Good opportunity for small position
 - CORE_CANDIDATE: High conviction, can be large holding
 
-CRITICAL: Your fair_value_conservative must be based ONLY on the fair_value analysts (damodaran-valuation, klarman-downside, greenwald-evasion). Do NOT average in position_size percentages.
+CRITICAL: Your fair_value_conservative must be based ONLY on the fair_value analysts (damodaran-valuation, seth-klarman, greenwald-evasion). Do NOT average in position_size percentages.
 
 Be decisive. Use actual current price from evidence: ${evidence?.current_price || 'check above'}.`;
 }

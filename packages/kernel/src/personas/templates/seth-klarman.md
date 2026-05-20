@@ -1,5 +1,5 @@
 ---
-id: "klarman-downside"
+id: "seth-klarman"
 name: "Seth Klarman"
 version: "1.0.0"
 domain: "investment-war-room"

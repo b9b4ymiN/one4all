@@ -15,6 +15,7 @@ import type {
   Decision,
 } from '@one4all/kernel';
 import { MissionState } from '@one4all/kernel';
+import { AgentRegistryLoader } from '@one4all/kernel';
 import { getHealthMonitor } from '@one4all/observability';
 import { createCLIAdapter, type CLIAdapterType } from '@one4all/adapters';
 import { getMissionStorage, type StoredMission } from './mission-storage.js';
@@ -358,46 +359,15 @@ export class KernelClient {
   }
 
   /**
-   * List agents
+   * List agents from the YAML registry
    */
   async listAgents(domain?: string): Promise<AgentConfig[]> {
-    // Mock agents list with CLI adapter info
-    const mockAgents: AgentConfig[] = [
-      {
-        id: 'damodaran-valuation',
-        name: 'Damodaran Valuation',
-        version: '1.0.0',
-        domain: 'investment-war-room',
-        active: true,
-        role: 'analyst',
-        description: 'DCF valuation specialist',
-        model: {
-          primary: { provider: this.defaultCLIAdapter, model: 'cli-based' },
-          fallback: [],
-        },
-        identity: {
-          persona_file: '/personas/damodaran.yaml',
-          worldview: ['value_investing', 'fundamental_analysis'],
-          cognitive_bias_awareness: ['anchoring', 'confirmation_bias'],
-        },
-        skills: ['dcf', 'reverse_dcf', 'mos_analysis'],
-        requires: ['financial_statements', 'growth_rate', 'discount_rate'],
-        interaction_rules: {},
-        output_contract: {
-          mandatory_fields: ['fair_value', 'margin_of_safety'],
-          forbidden_content: [],
-        },
-        performance: {
-          timeout_seconds: 300,
-          max_tokens: 8000,
-        },
-      },
-    ];
-
+    const registry = new AgentRegistryLoader(process.cwd());
     if (domain) {
-      return mockAgents.filter((a) => a.domain === domain);
+      return registry.getAgentsByDomain(domain);
     }
-    return mockAgents;
+    const result = await registry.load();
+    return result.data ? Object.values(result.data.agents) : [];
   }
 
   /**
